@@ -6,8 +6,8 @@ require_once 'vendor/autoload.php';
 
 use Sunra\PhpSimple\HtmlDomParser;
 
-$htmlSoubor = 'drakkar_2016_54_unor.html';
-$slozkaVystup = 'out';
+$htmlSoubor = 'in/drakkar_2016_54_unor.html';
+$slozkaVystup = 'out/drakkar_2016_54_unor';
 
 $html = HtmlDomParser::file_get_html($htmlSoubor);
 
