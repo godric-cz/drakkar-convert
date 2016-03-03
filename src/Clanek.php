@@ -5,13 +5,14 @@ namespace Drakkar;
 class Clanek {
 
   public
+    $doplnky,
     $hlavicka,
     $text;
 
   /**
    * @return text článku v markdownu vč. front matter
    */
-  function md() {
+  function md($slozka = null) {
     $out = '';
 
     $hlavicky = $this->hlavicka;
@@ -26,10 +27,26 @@ class Clanek {
 
     $out .= $this->text;
 
+    if($this->doplnky) {
+      $out .= "\n\n---\n";
+      foreach($this->doplnky as $doplnek) {
+        if($doplnek instanceof Obrazek) {
+          $cil = strtolower(basename($doplnek->cesta));
+          $cil = strtr($cil, ['.jpeg' => '.jpg']);
+          $out .= "![]($cil)\n\n";
+          if($slozka) {
+            copy($doplnek->cesta, $slozka . '/' . $cil);
+          }
+        } else {
+          $out .= $doplnek . "\n\n";
+        }
+      }
+    }
+
     return $out;
   }
 
-  protected function url() {
+  function url() {
     $nazev = iconv('utf-8', 'Windows-1250//IGNORE', $this->hlavicka['Title']);
     $nazev = strtr(
       $nazev,
@@ -47,7 +64,7 @@ class Clanek {
     if(!is_writeable($slozka)) throw new Exception('do složky nelze zapsat');
     file_put_contents(
       $slozka . '/' . $this->url() . '.md',
-      $this->md()
+      $this->md($slozka)
     );
   }
 

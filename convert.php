@@ -6,8 +6,12 @@ require_once 'vendor/autoload.php';
 
 use Sunra\PhpSimple\HtmlDomParser;
 
-$html = HtmlDomParser::file_get_html('drakkar_2016_54_unor.html'); // TODO
+$htmlSoubor = 'drakkar_2016_54_unor.html';
+$slozkaVystup = 'out';
 
+$html = HtmlDomParser::file_get_html($htmlSoubor);
+
+$souboryClanku = [];
 foreach($html->find('[class^=Z-hlav]') as $e) {
   if(!preg_match('@Z-hlav--.-titul@', $e->class)) continue; // skip not head titles, parser cannot do multiple attribute selectors
 
@@ -42,8 +46,35 @@ foreach($html->find('[class^=Z-hlav]') as $e) {
   // redukce tagů na markdown
   $p = new Prekladac;
   $text = $p->preloz($e);
+  $c->text = $text;
   //echo $text, "\n\n\n\n\n\n";
 
-  $c->text = $text;
-  $c->zapisDoSlozky('out');
+  // obrázky a poznámky
+  $dalsi = $e;
+  while($dalsi = $dalsi->next_sibling()) {
+    $class = $dalsi->class;
+    if($class == 'marginalie') {
+      continue;
+    } elseif(strpos($class, 'Obr-zek--bez-r-mu-') === 0) {
+      $src = $dalsi->find('img', 0)->src;
+      $obrazek = new Obrazek;
+      $obrazek->cesta = dirname($htmlSoubor) . '/' . $src;
+      $c->doplnky[] = $obrazek;
+    } elseif(strpos($class, 'Sidebar-') === 0) {
+      $c->doplnky[] = '<div class="sidebar">' . trim($dalsi->innertext) . '</div>';
+    } else {
+      break;
+    }
+  }
+
+  $c->zapisDoSlozky($slozkaVystup);
+  $souboryClanku[] = $c->url() . '.md'; // TODO lépe nějaká třída kolekce článků, co to pořeší
 }
+
+// vytvořit seznam článků
+file_put_contents($slozkaVystup . '/metadata.yaml',
+  "---\n" .
+  "pdf: (DOPLŇ) drakkar_2015_51_srpen.pdf\n" .
+  "articles:\n(DOPLŇ ÚVOD)\n" .
+  implode('', array_map(function($e){ return "- $e\n"; }, $souboryClanku))
+);
