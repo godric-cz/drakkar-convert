@@ -63,7 +63,7 @@ class Konvertor {
         $class = $dalsi->class;
         if($class == 'marginalie') {
           continue;
-        } elseif(strpos($class, 'Obr-zek--bez-r-mu-') === 0) {
+        } elseif(strpos($class, 'Obr-zek-') === 0) {
           $src = $dalsi->find('img', 0)->src;
           $obrazek = new Obrazek;
           $obrazek->cesta = dirname($vstupniHtmlSoubor) . '/' . $src;
