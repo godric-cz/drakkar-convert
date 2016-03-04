@@ -9,6 +9,27 @@ class Clanek {
     $hlavicka,
     $text;
 
+  protected function doplnkyMd($slozka = null) {
+    if(!$this->doplnky) return '';
+
+    $out = "\n\n---\n";
+    foreach($this->doplnky as $doplnek) {
+      if($doplnek instanceof Obrazek) {
+        $i = pathinfo($doplnek->cesta);
+        $nazev = $this->urlPreved($i['filename']);
+        $pripona = strtr($i['extension'], ['jpeg' => 'jpg']);
+        $cil = "$nazev.$pripona";
+        $out .= "![]($cil)\n\n";
+        if($slozka) {
+          copy($doplnek->cesta, $slozka . '/' . $cil);
+        }
+      } else {
+        $out .= $doplnek . "\n\n";
+      }
+    }
+    return $out;
+  }
+
   /**
    * @return text článku v markdownu vč. front matter
    */
@@ -27,36 +48,24 @@ class Clanek {
 
     $out .= $this->text;
 
-    if($this->doplnky) {
-      $out .= "\n\n---\n";
-      foreach($this->doplnky as $doplnek) {
-        if($doplnek instanceof Obrazek) {
-          $cil = strtolower(basename($doplnek->cesta));
-          $cil = strtr($cil, ['.jpeg' => '.jpg']);
-          $out .= "![]($cil)\n\n";
-          if($slozka) {
-            copy($doplnek->cesta, $slozka . '/' . $cil);
-          }
-        } else {
-          $out .= $doplnek . "\n\n";
-        }
-      }
-    }
+    $out .= $this->doplnkyMd($slozka);
 
     return $out;
   }
 
   function url() {
-    $nazev = iconv('utf-8', 'Windows-1250//IGNORE', $this->hlavicka['Title']);
-    $nazev = strtr(
-      $nazev,
-      iconv('utf-8', 'Windows-1250',  "ÁÄČÇĎÉĚËÍŇÓÖŘŠŤÚŮÜÝŽáäčçďéěëíňóöřšťúůüýž"),
-                                      "aaccdeeeinoorstuuuyzaaccdeeeinoorstuuuyz"
-    );
-    $nazev = preg_replace('@[^a-zA-Z0-9\-]+@', '-', $nazev);
-    $nazev = trim($nazev, '-');
-    $nazev = strtolower($nazev);
-    return $nazev;
+    return $this->urlPreved($this->hlavicka['Title']);
+  }
+
+  protected function urlPreved($r) {
+    $sDia   = "ÁÄČÇĎÉĚËÍŇÓÖŘŠŤÚŮÜÝŽáäčçďéěëíňóöřšťúůüýž";
+    $bezDia = "aaccdeeeinoorstuuuyzaaccdeeeinoorstuuuyz";
+    $r = iconv('utf-8', 'Windows-1250//IGNORE', $r);
+    $r = strtr($r, iconv('utf-8', 'Windows-1250', $sDia), $bezDia);
+    $r = preg_replace('@[^a-zA-Z0-9\-]+@', '-', $r);
+    $r = trim($r, '-');
+    $r = strtolower($r);
+    return $r;
   }
 
   function zapisDoSlozky($slozka) {
