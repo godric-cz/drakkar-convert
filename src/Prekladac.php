@@ -9,6 +9,9 @@ class Prekladac {
   // pozor že obsah již jednou modifikovaného nelze znova modifikovat (vnitřní uzly zmizí z domu)
   // je tedy vhodné začít "nejmenšími" elementy
   // TODO v případě největší nouze přidat nějaké znovusestavení DOMu
+  // Operace:
+  //  orez - trim na obsahu
+  //  posledni - změněný přepis u elementů, po kterých následuje jiný element
   private static $prepisy = [
     'a[href]'             =>  '[@](@href)',
     '[class^=Nadpis-]'    =>  "# @ \n\n",
@@ -20,7 +23,8 @@ class Prekladac {
     'ul'                  =>  "@\n\n",
     'ol li'               =>  "\n1. @",
     'ol'                  =>  "@\n\n",
-    'p[class^=P--klad]'   =>  ["{{p-priklad}}@{{/p-priklad}}\n\n", 'orez' => true],
+    'p[class^=P--klad]'   =>  ["{{priklad}}@{{/priklad}}\n\n", 'orez' => true],
+    'p[class=Seznam-bez-punt-k-]' =>  ["* @\n", 'posledni' => "* @\n\n"], // TODO mělo by být bez puntíků
      // p musí být poslední, protože modifikace inner/outertextů degraduje schopnost vyhledávat v DOMu
     'p'                   =>  "@\n\n",
   ];
@@ -39,7 +43,7 @@ class Prekladac {
     // výstup
     $text = $e->innertext;
     $text = preg_replace('@^<div>|</div>$@', '', $text);
-//     $text = strip_tags($text); // nutné zde kvůli správnému oříznutí řádků
+    // $text = strip_tags($text); // nutné zde kvůli správnému oříznutí řádků
     $text = html_entity_decode($text, ENT_HTML5, 'utf-8');
     $text = preg_replace('@^[ \t]+|[ \t]+$@m', '', $text);
 
@@ -52,17 +56,24 @@ class Prekladac {
   protected function aplikujPrepisy($dom) {
     foreach(self::$prepisy as $selector => $pravidlo) {
       foreach($dom->find($selector) as $e) {
+        // extra parametry pravidla
         if(is_array($pravidlo)) {
           $orez = isset($pravidlo['orez']);
+          $posledni = isset($pravidlo['posledni']) ? $pravidlo['posledni'] : null;
           $prepis = $pravidlo[0];
         } else {
           $orez = false;
+          $posledni = null;
           $prepis = $pravidlo;
         }
         // nahrazení spec. znaků v pravidle hodnotami
+        if($posledni && ($e->next_sibling()->class != $e->class || $e->next_sibling()->innertext == '')) // workaroud jen porovnání class místo hledání v elementech
+          $prepis = $posledni;
         if(strpos($prepis, '@href') !== false)
           $prepis = str_replace('@href', $e->href, $prepis);
         $prepis = str_replace('@', $orez ? trim($e->innertext) : $e->innertext, $prepis);
+        if(trim($e->innertext) == '') // prázdné elementy vypustit
+          $prepis = '';
         $e->innertext = $prepis;
         // odstranění tagů kvůli snadnějšímu debugování
         if(!isset($e->modified) && ($selector != 'p' || self::in_array_preg($e->class, self::$znameTridyOdstavcu))) {
@@ -80,8 +91,8 @@ class Prekladac {
 
   protected function prelozMeta($text) {
     return strtr($text, [
-      '{{p-priklad}}'   =>  '<p class="sample">',
-      '{{/p-priklad}}'  =>  '</p>',
+      '{{priklad}}'   =>  '<p class="sample">',
+      '{{/priklad}}'  =>  '</p>',
     ]);
   }
 

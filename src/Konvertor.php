@@ -6,6 +6,16 @@ use Sunra\PhpSimple\HtmlDomParser;
 
 class Konvertor {
 
+  private
+    $debug = false;
+
+  function debug(/* variadic */) {
+    if(func_num_args() == 1)
+      $this->debug = func_get_arg(0);
+    else
+      return $this->debug;
+  }
+
   function preved($vstupniHtmlSoubor, $vystupniSlozka) {
     $html = HtmlDomParser::file_get_html($vstupniHtmlSoubor);
 
@@ -17,12 +27,13 @@ class Konvertor {
       $e = $e->parent();
       $c = new Clanek;
 
-      $c->hlavicka['Title'] = strtr($nadpis->innertext, ['<br>' => ' ']);
+      $c->hlavicka['Title'] = strtr(html_entity_decode($nadpis->innertext), ['<br>' => ' ', '<br />' => ' ']);
       $nadpis->outertext = '';
 
       $rubriky = [];
       foreach($e->find('[class$=-rubrika]') as $re) {
-        $text = trim($re->innertext);
+        $text = html_entity_decode($re->innertext);
+        $text = trim($text);
         if(strpos($text, "\t") !== false)
           $rubriky = array_merge($rubriky, explode("\t", $text));
         else
@@ -45,7 +56,6 @@ class Konvertor {
       $p = new Prekladac;
       $text = $p->preloz($e);
       $c->text = $text;
-      //echo $text, "\n\n\n\n\n\n";
 
       // obrázky a poznámky
       $dalsi = $e;
@@ -64,6 +74,8 @@ class Konvertor {
           break;
         }
       }
+
+      if($this->debug) echo $c->md(), "\n\n\n\n\n\n";
 
       $c->zapisDoSlozky($vystupniSlozka);
       $souboryClanku[] = $c->url() . '.md'; // TODO lépe nějaká třída kolekce článků, co to pořeší
