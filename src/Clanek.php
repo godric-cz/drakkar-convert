@@ -12,7 +12,7 @@ class Clanek {
   protected function doplnkyMd($slozka = null) {
     if(!$this->doplnky) return '';
 
-    $out = "\n\n---\n";
+    $out = "\n\n---\n\n";
     foreach($this->doplnky as $doplnek) {
       if($doplnek instanceof Obrazek) {
         $i = pathinfo($doplnek->cesta);

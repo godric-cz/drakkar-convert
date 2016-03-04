@@ -3,6 +3,7 @@
 namespace Drakkar;
 
 use Sunra\PhpSimple\HtmlDomParser;
+use Drakkar\Postproces\Postprocesor;
 
 class Konvertor {
 
@@ -80,6 +81,14 @@ class Konvertor {
       "articles:\n(DOPLŇ ÚVOD)\n" .
       implode('', array_map(function($e){ return "- $e\n"; }, $souboryClanku))
     );
+
+    // případný postprocessing
+    $i = pathinfo($vstupniHtmlSoubor);
+    $postprocesor = $i['dirname'] . '/' . $i['filename'] . '.php';
+    if(is_file($postprocesor)) {
+      $p = new Postprocesor($vystupniSlozka, $postprocesor);
+      $p->spust();
+    }
   }
 
   function zachovatTagy($set) {

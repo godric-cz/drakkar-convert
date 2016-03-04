@@ -49,6 +49,7 @@ class Prekladac {
     if(!$this->zachovatTagy) $text = strip_tags($text); // nutné zde kvůli správnému oříznutí řádků
     $text = html_entity_decode($text, ENT_HTML5, 'utf-8');
     $text = preg_replace('@^[ \t]+|[ \t]+$@m', '', $text);
+    $text = preg_replace('@ +@', ' ', $text); // sloučit vícenásobné mezery
 
     $bileznaky = html_entity_decode('&nbsp;') . '\s'; // pcre modifikátor "s" nebere v úvahu utf-8 kódované nbsp
     $text = preg_replace("@\n[$bileznaky]*\n+@", "\n\n", $text);
