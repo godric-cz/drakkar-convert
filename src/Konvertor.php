@@ -7,7 +7,12 @@ use Sunra\PhpSimple\HtmlDomParser;
 class Konvertor {
 
   private
-    $debug = false;
+    $debug = false,
+    $prekladac;
+
+  function __construct() {
+    $this->prekladac = new Prekladac;
+  }
 
   function debug(/* variadic */) {
     if(func_num_args() == 1)
@@ -41,8 +46,7 @@ class Konvertor {
       }
 
       // redukce tagů na markdown
-      $p = new Prekladac;
-      $text = $p->preloz($e);
+      $text = $this->prekladac->preloz($e);
       $c->text = $text;
 
       // obrázky a poznámky
@@ -76,6 +80,10 @@ class Konvertor {
       "articles:\n(DOPLŇ ÚVOD)\n" .
       implode('', array_map(function($e){ return "- $e\n"; }, $souboryClanku))
     );
+  }
+
+  function zachovatTagy($set) {
+    $this->prekladac->zachovatTagy($set);
   }
 
   /**
