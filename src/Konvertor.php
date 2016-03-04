@@ -30,20 +30,8 @@ class Konvertor {
       $c->hlavicka['Title'] = strtr(html_entity_decode($nadpis->innertext), ['<br>' => ' ', '<br />' => ' ']);
       $nadpis->outertext = '';
 
-      $rubriky = [];
-      foreach($e->find('[class$=-rubrika]') as $re) {
-        $text = html_entity_decode($re->innertext);
-        $text = trim($text);
-        if(strpos($text, "\t") !== false)
-          $rubriky = array_merge($rubriky, explode("\t", $text));
-        else
-          $rubriky[] = $text;
-        $re->outertext = '';
-        // ukončit, aby se nenačetly elementy později v textu
-        $next = $re->next_sibling();
-        if(!preg_match('@-rubrika$@', $next->class)) break;
-      }
       // rozdělení stylu "rubrika" na autory a tagy
+      $rubriky = $this->rubriky($e);
       foreach($rubriky as $r) {
         $r = preg_replace('@^napsala?\s+|^připravila?\s+@', '', $r, 1, $pocet);
         if($pocet > 0)
@@ -88,6 +76,27 @@ class Konvertor {
       "articles:\n(DOPLŇ ÚVOD)\n" .
       implode('', array_map(function($e){ return "- $e\n"; }, $souboryClanku))
     );
+  }
+
+  /**
+   * Vyhledá v elemetu článku "rubriky" (autory a tagy) a vrátí pole řetězců
+   */
+  protected function rubriky($e) {
+    $rubriky = [];
+    foreach($e->find('[class$=-rubrika]') as $re) {
+      $text = html_entity_decode($re->innertext);
+      $text = trim($text);
+      $text = strtr($text, ['<span>2</span>' => '²']); // E² ;)
+      if(strpos($text, "\t") !== false)
+        $rubriky = array_merge($rubriky, explode("\t", $text));
+      else
+        $rubriky[] = $text;
+      $re->outertext = '';
+      // ukončit, aby se nenačetly elementy později v textu
+      $next = $re->next_sibling();
+      if(!preg_match('@-rubrika$@', $next->class)) break;
+    }
+    return $rubriky;
   }
 
 }
