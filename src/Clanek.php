@@ -65,6 +65,7 @@ class Clanek {
 
     $out .= $this->doplnkyMd();
 
+    $out = preg_replace('@[\n\s]+$@', "\n", $out);
     return $out;
   }
 
