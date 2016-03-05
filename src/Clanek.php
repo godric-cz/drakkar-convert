@@ -3,6 +3,7 @@
 namespace Drakkar;
 
 use Intervention\Image\ImageManagerStatic as Image;
+use Intervention\Image\Exception\NotReadableException as ImageNotReadableException;
 
 class Clanek {
 
@@ -23,10 +24,13 @@ class Clanek {
         if($slozka) {
           // TODO vysunout nastavení obrázků ven
           $constraints = function($constraint) { $constraint->upsize(); }; // jen zvětšit
-          Image::make($doplnek->cesta)
-            ->widen(555, $constraints)
-            ->save($slozka . '/' . $cil, 92);
-          //copy($doplnek->cesta, $slozka . '/' . $cil);
+          try {
+            Image::make($doplnek->cesta)
+              ->widen(555, $constraints)
+              ->save($slozka . '/' . $cil, 92);
+          } catch(ImageNotReadableException $e) {
+            throw new \Exception('obrázek nelze přečíst: ' . $doplnek->cesta);
+          }
         }
       } else {
         $out .= $doplnek . "\n\n";
