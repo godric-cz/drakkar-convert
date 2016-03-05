@@ -10,7 +10,8 @@ class Konvertor {
   private
     $bezObrazku = false,
     $debug = false,
-    $prekladac;
+    $prekladac,
+    $zobrazKorekce = false;
 
   function __construct() {
     $this->prekladac = new Prekladac;
@@ -60,6 +61,7 @@ class Konvertor {
       $c->text = $text;
 
       // obrázky a poznámky
+      if($this->zobrazKorekce) echo "\n\$c = \$v->clanek('" . $c->url() . "');\n";
       $dalsi = $e;
       while($dalsi = $dalsi->next_sibling()) {
         $class = $dalsi->class;
@@ -71,6 +73,10 @@ class Konvertor {
           $obrazek = new Obrazek;
           $obrazek->cesta = dirname($vstupniHtmlSoubor) . '/' . $src;
           $c->doplnky[] = $obrazek;
+          if($this->zobrazKorekce) {
+            $i = pathinfo($obrazek->cesta);
+            echo '$c->obrazek(\'' . substr($i['filename'], 0, 10) . "')->presunZa('');\n";
+          }
         } elseif(strpos($class, 'Sidebar-') === 0) {
           $c->doplnky[] = '<div class="sidebar">' . trim($dalsi->innertext) . '</div>';
         } else {
@@ -103,10 +109,6 @@ class Konvertor {
     }
   }
 
-  function zachovatTagy($set) {
-    $this->prekladac->zachovatTagy($set);
-  }
-
   /**
    * Vyhledá v elemetu článku "rubriky" (autory a tagy) a vrátí pole řetězců
    */
@@ -126,6 +128,14 @@ class Konvertor {
       if(!preg_match('@-rubrika$@', $next->class)) break;
     }
     return $rubriky;
+  }
+
+  function zachovatTagy($set) {
+    $this->prekladac->zachovatTagy($set);
+  }
+
+  function zobrazKorekce($set) {
+    $this->zobrazKorekce = $set;
   }
 
 }
