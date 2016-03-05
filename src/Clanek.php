@@ -2,6 +2,8 @@
 
 namespace Drakkar;
 
+use Intervention\Image\ImageManagerStatic as Image;
+
 class Clanek {
 
   public
@@ -16,12 +18,15 @@ class Clanek {
     foreach($this->doplnky as $doplnek) {
       if($doplnek instanceof Obrazek) {
         $i = pathinfo($doplnek->cesta);
-        $nazev = $this->urlPreved($i['filename']);
-        $pripona = strtr($i['extension'], ['jpeg' => 'jpg']);
-        $cil = "$nazev.$pripona";
+        $cil = $this->urlPreved($i['filename']) . '.jpg';
         $out .= "![]($cil)\n\n";
         if($slozka) {
-          copy($doplnek->cesta, $slozka . '/' . $cil);
+          // TODO vysunout nastavení obrázků ven
+          $constraints = function($constraint) { $constraint->upsize(); }; // jen zvětšit
+          Image::make($doplnek->cesta)
+            ->widen(555, $constraints)
+            ->save($slozka . '/' . $cil, 92);
+          //copy($doplnek->cesta, $slozka . '/' . $cil);
         }
       } else {
         $out .= $doplnek . "\n\n";
