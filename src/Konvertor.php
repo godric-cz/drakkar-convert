@@ -85,10 +85,12 @@ class Konvertor {
     }
 
     // vytvořit seznam článků
+    $i = pathinfo($vstupniHtmlSoubor);
+    $pdfVerze = $i['filename'] . '.pdf';
     file_put_contents($vystupniSlozka . '/metadata.yaml',
       "---\n" .
-      "pdf: (DOPLŇ) drakkar_2015_51_srpen.pdf\n" .
-      "articles:\n(DOPLŇ ÚVOD)\n" .
+      "pdf: $pdfVerze\n" .
+      "articles: \n- uvodni-haiku.md\n" .
       implode('', array_map(function($e){ return "- $e\n"; }, $souboryClanku))
     );
 
