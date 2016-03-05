@@ -74,8 +74,8 @@ class Clanek {
   }
 
   function zapisDoSlozky($slozka) {
-    if(!is_dir($slozka) && !mkdir($slozka)) throw new Exception('složka neexistuje a nejde ani vytvořit');
-    if(!is_writeable($slozka)) throw new Exception('do složky nelze zapsat');
+    if(!is_dir($slozka) && !mkdir($slozka)) throw new \Exception('složka neexistuje a nejde ani vytvořit');
+    if(!is_writeable($slozka)) throw new \Exception('do složky nelze zapsat');
     file_put_contents(
       $slozka . '/' . $this->url() . '.md',
       $this->md($slozka)
