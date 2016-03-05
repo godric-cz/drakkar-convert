@@ -8,11 +8,16 @@ use Drakkar\Postproces\Postprocesor;
 class Konvertor {
 
   private
+    $bezObrazku = false,
     $debug = false,
     $prekladac;
 
   function __construct() {
     $this->prekladac = new Prekladac;
+  }
+
+  function bezObrazku($set) {
+    $this->bezObrazku = $set;
   }
 
   function debug(/* variadic */) {
@@ -32,6 +37,7 @@ class Konvertor {
       $nadpis = $e;
       $e = $e->parent();
       $c = new Clanek;
+      if($this->bezObrazku) $c->bezObrazku(true);
 
       $c->hlavicka['Title'] = strtr(html_entity_decode($nadpis->innertext), ['<br>' => ' ', '<br />' => ' ']);
       $nadpis->outertext = '';

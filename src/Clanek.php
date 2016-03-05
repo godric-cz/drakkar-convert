@@ -8,11 +8,17 @@ use Intervention\Image\Exception\NotReadableException as ImageNotReadableExcepti
 class Clanek {
 
   public
+    $bezObrazku = false,
     $doplnky,
     $hlavicka,
+    $slozka = null,
     $text;
 
-  protected function doplnkyMd($slozka = null) {
+  function bezObrazku($set) {
+    $this->bezObrazku = $set;
+  }
+
+  protected function doplnkyMd() {
     if(!$this->doplnky) return '';
 
     $out = "\n\n---\n\n";
@@ -21,13 +27,13 @@ class Clanek {
         $i = pathinfo($doplnek->cesta);
         $cil = $this->urlPreved($i['filename']) . '.jpg';
         $out .= "![]($cil)\n\n";
-        if($slozka) {
+        if($this->slozka && !$this->bezObrazku) {
           // TODO vysunout nastavení obrázků ven
           $constraints = function($constraint) { $constraint->upsize(); }; // jen zvětšit
           try {
             Image::make($doplnek->cesta)
               ->widen(555, $constraints)
-              ->save($slozka . '/' . $cil, 92);
+              ->save($this->slozka . '/' . $cil, 92);
           } catch(ImageNotReadableException $e) {
             throw new \Exception('obrázek nelze přečíst: ' . $doplnek->cesta);
           }
@@ -42,7 +48,7 @@ class Clanek {
   /**
    * @return text článku v markdownu vč. front matter
    */
-  function md($slozka = null) {
+  function md() {
     $out = '';
 
     $hlavicky = $this->hlavicka;
@@ -57,7 +63,7 @@ class Clanek {
 
     $out .= $this->text;
 
-    $out .= $this->doplnkyMd($slozka);
+    $out .= $this->doplnkyMd();
 
     return $out;
   }
@@ -80,9 +86,10 @@ class Clanek {
   function zapisDoSlozky($slozka) {
     if(!is_dir($slozka) && !mkdir($slozka)) throw new \Exception('složka neexistuje a nejde ani vytvořit');
     if(!is_writeable($slozka)) throw new \Exception('do složky nelze zapsat');
+    $this->slozka = $slozka;
     file_put_contents(
-      $slozka . '/' . $this->url() . '.md',
-      $this->md($slozka)
+      $this->slozka . '/' . $this->url() . '.md',
+      $this->md()
     );
   }
 
