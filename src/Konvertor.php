@@ -32,7 +32,10 @@ class Konvertor {
 
     $souboryClanku = [];
     foreach($html->find('[class^=Z-hlav]') as $e) {
-      if(!preg_match('@Z-hlav--.-titul@', $e->class)) continue; // skip not head titles, parser cannot do multiple attribute selectors
+      if(
+        !preg_match('@Z-hlav--.-titul@', $e->class) ||  // skip not head titles, parser cannot do multiple attribute selectors
+        $e->innertext == ''
+      ) continue;
 
       $nadpis = $e;
       $e = $e->parent();
@@ -62,7 +65,8 @@ class Konvertor {
         $class = $dalsi->class;
         if($class == 'marginalie') {
           continue;
-        } elseif(strpos($class, 'Obr-zek-') === 0) {
+        } elseif(strpos($class, 'Obr-zek-') === 0 || $class == 'frame-2') {
+          if($dalsi->find('img', 0)->alt == 'blackbg.png') continue; // přeskočit obrázkové pozadí bezejmenných hrdinů
           $src = urldecode($dalsi->find('img', 0)->src);
           $obrazek = new Obrazek;
           $obrazek->cesta = dirname($vstupniHtmlSoubor) . '/' . $src;
