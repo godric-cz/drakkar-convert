@@ -29,7 +29,7 @@ class Konvertor {
   }
 
   function preved($vstupniHtmlSoubor, $vystupniSlozka) {
-    $html = HtmlDomParser::file_get_html($vstupniHtmlSoubor);
+    $html = HtmlDomParser::str_get_html(file_get_contents($vstupniHtmlSoubor));
 
     $souboryClanku = [];
     foreach($html->find('[class^=Z-hlav]') as $e) {
