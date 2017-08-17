@@ -26,7 +26,7 @@ class Clanek {
       if($doplnek instanceof Obrazek) {
         $i = pathinfo($doplnek->cesta);
         $cil = $this->urlPreved($i['filename']) . '.jpg';
-        $out .= "![]($cil)\n\n";
+        $out .= "![obrazek]($cil)\n\n";
         if($this->slozka && !$this->bezObrazku) {
           // TODO vysunout nastavení obrázků ven
           $constraints = function($constraint) { $constraint->upsize(); }; // jen zvětšit

@@ -43,7 +43,7 @@ class Clanek {
 
   function obrazek($castNazvu) {
     $f = preg_quote($castNazvu);
-    preg_match('@\n*!\[\]\([^\)]*' . $f . '[^\)]*\)@', $this->text, $m, PREG_OFFSET_CAPTURE, strrpos($this->text, "---\n\n"));
+    preg_match('@\n*!\[[^\]]*\]\([^\)]*' . $f . '[^\)]*\)@', $this->text, $m, PREG_OFFSET_CAPTURE, strrpos($this->text, "---\n\n"));
     if(!isset($m[0])) throw new \Exception('nenalezen obrázek: ' . $castNazvu);
     return new Kus($this->text, $m[0][1], strlen($m[0][0]));
   }
