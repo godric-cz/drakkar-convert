@@ -26,19 +26,21 @@ Ve výchozím nastavení je potřeba zdrojové html + resources nahrát do slož
 - __-t__ – zachovat neznámé html tagy ve výstupu
 - __-o složka__ – output: uložit výstup do určité složky (uvnitř ní se vždy vytvoří podsložky pro jednotlivá čísla. Ideální pro složku `content` z repa [casopisdrakkar/clanky](https://github.com/casopisdrakkar/clanky).)
 - __-b__ – nevytváří obrázky, pouze texty
-- __-k__ – zobrazí mustr pro _korekce_
 
 ## Korekce
 
-Výstup ze sázecího systému přiloží všechny obrázky až na konec článku. Pomocí korekcí lze přesouvat obrázky v textu kam patří automatizovaně už při generování. Stačí vytvořit v složce `in` soubor php s názvem odpovídajícím původnímu html, např. `drakkar_2015_51_srpen.php`. Obsah může vypadat následovně:
+Výstup ze sázecího systému přiloží všechny obrázky až na konec článku. Pomocí korekcí lze přesouvat obrázky v textu kam patří automatizovaně už při generování. Stačí vytvořit v složce `in` soubor yaml s názvem odpovídajícím číslu, např. `62.yaml`. Obsah může vypadat následovně:
 
-```php
-$c = $v->clanek('vzducholode');
-$c->obrazek('pyramids')->presunZa('tedy bylo žádoucí.');
-$c->obrazek('hindenburg')->presunZa('navzájem narážejí lokty.');
-
-$c = $v->clanek('prvni-ceta');
-$c->obrazek('silhouettes')->presunZa('chráněných pancířem.');
-
-// ...
+```yaml
+obrfix:
+  veda:
+    - aktivní jádro.
+    - neutronových hvězd.
+    - Hawkingovu záření.
+  pet-setkani:
+    - vždycky žili.
+    - chtějí se domluvit.
+    - vše popíše.
 ```
+
+Obrfix jen říká, že se budou přesouvat obrázky, vnořené názvy (veda) jsou části názvů článků a položky (- aktivní jádro.) jsou konce odstavců, za které se mají obrázky postupně zařadit.

@@ -10,8 +10,7 @@ class Konvertor {
   private
     $bezObrazku = false,
     $debug = false,
-    $prekladac,
-    $zobrazKorekce = false;
+    $prekladac;
 
   function __construct() {
     $this->prekladac = new Prekladac;
@@ -28,7 +27,7 @@ class Konvertor {
       return $this->debug;
   }
 
-  function preved($vstupniHtmlSoubor, $vystupniSlozka) {
+  function preved($vstupniHtmlSoubor, $vystupniSlozka, $vydani) {
     $html = HtmlDomParser::str_get_html(file_get_contents($vstupniHtmlSoubor));
 
     $souboryClanku = [];
@@ -61,7 +60,6 @@ class Konvertor {
       $c->text = $text;
 
       // obrázky a poznámky
-      if($this->zobrazKorekce) echo "\n\$c = \$v->clanek('" . $c->url() . "');\n";
       $dalsi = $e;
       while($dalsi = $dalsi->next_sibling()) {
         $class = $dalsi->class;
@@ -73,10 +71,6 @@ class Konvertor {
           $obrazek = new Obrazek;
           $obrazek->cesta = dirname($vstupniHtmlSoubor) . '/' . $src;
           $c->doplnky[] = $obrazek;
-          if($this->zobrazKorekce) {
-            $i = pathinfo($obrazek->cesta);
-            echo '$c->obrazek(\'' . substr($i['filename'], 0, 10) . "')->presunZa('');\n";
-          }
         } elseif(strpos($class, 'Sidebar-') === 0) {
           $c->doplnky[] = '<div class="sidebar">' . trim($dalsi->innertext) . '</div>';
         } else {
@@ -102,7 +96,7 @@ class Konvertor {
 
     // případný postprocessing
     $i = pathinfo($vstupniHtmlSoubor);
-    $postprocesor = $i['dirname'] . '/' . $i['filename'] . '.php';
+    $postprocesor = $i['dirname'] . '/' . $vydani . '.yaml';
     if(is_file($postprocesor)) {
       $p = new Postprocesor($vystupniSlozka, $postprocesor);
       $p->spust();
@@ -132,10 +126,6 @@ class Konvertor {
 
   function zachovatTagy($set) {
     $this->prekladac->zachovatTagy($set);
-  }
-
-  function zobrazKorekce($set) {
-    $this->zobrazKorekce = $set;
   }
 
 }

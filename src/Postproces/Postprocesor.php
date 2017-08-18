@@ -2,10 +2,11 @@
 
 namespace Drakkar\Postproces;
 
+use Symfony\Component\Yaml\Yaml;
+
 class Postprocesor {
 
   private
-    $clanky = [],
     $postprocesor;
 
   function __construct($slozka, $postprocesor) {
@@ -15,17 +16,23 @@ class Postprocesor {
 
   function clanek($castNazvu) {
     foreach(glob($this->slozka . "/*$castNazvu*.md") as $f) {
-      $c = new Clanek($f);
-      $this->clanky[] = $c;
-      return $c;
+      return new Clanek($f);
     }
     throw new \Exception("článek $castNazvu neexistuje");
   }
 
   function spust() {
-    $v = $this;
-    include $this->postprocesor;
-    foreach($this->clanky as $c) $c->uloz();
+    $yaml = Yaml::parse(file_get_contents($this->postprocesor));
+    foreach($yaml['obrfix'] as $castNazvu => $posuny) {
+      $c = $this->clanek($castNazvu);
+      $obrazky = $c->obrazky();
+      if(count($obrazky) != count($posuny))
+        throw new \Exception("počet obrázků v článku neodpovídá počtu v yaml souboru");
+      foreach($obrazky as $i => $obrazek) {
+        $obrazek->presunZa($posuny[$i]);
+      }
+      $c->uloz();
+    }
   }
 
 }
@@ -46,6 +53,15 @@ class Clanek {
     preg_match('@\n*!\[[^\]]*\]\([^\)]*' . $f . '[^\)]*\)@', $this->text, $m, PREG_OFFSET_CAPTURE, strrpos($this->text, "---\n\n"));
     if(!isset($m[0])) throw new \Exception('nenalezen obrázek: ' . $castNazvu);
     return new Kus($this->text, $m[0][1], strlen($m[0][0]));
+  }
+
+  function obrazky() {
+    preg_match_all('/\n*!\[[^\]]*\]\([^\)]*\)/', $this->text, $matches, PREG_OFFSET_CAPTURE, strrpos($this->text, "---\n\n"));
+    $kusy = [];
+    foreach($matches[0] as $m) {
+      $kusy[] = new Kus($this->text, $m[1], strlen($m[0]));
+    }
+    return $kusy;
   }
 
   function uloz() {
