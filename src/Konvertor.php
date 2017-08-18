@@ -71,6 +71,11 @@ class Konvertor {
           $obrazek = new Obrazek;
           $obrazek->cesta = dirname($vstupniHtmlSoubor) . '/' . $src;
           $c->doplnky[] = $obrazek;
+          if(strpos($c->url(), 'bezejmenny-hrdina') !== false) {
+            // lepší kvalita obrázků pro bezejmenného hrdinu
+            $obrazek->sirka = 1000;
+            $obrazek->kvalita = 98;
+          }
         } elseif(strpos($class, 'Sidebar-') === 0) {
           $c->doplnky[] = '<div class="sidebar">' . trim($dalsi->innertext) . '</div>';
         } else {

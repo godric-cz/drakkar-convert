@@ -32,8 +32,8 @@ class Clanek {
           $constraints = function($constraint) { $constraint->upsize(); }; // jen zvětšit
           try {
             Image::make($doplnek->cesta)
-              ->widen(555, $constraints)
-              ->save($this->slozka . '/' . $cil, 92);
+              ->widen($doplnek->sirka, $constraints)
+              ->save($this->slozka . '/' . $cil, $doplnek->kvalita);
           } catch(ImageNotReadableException $e) {
             throw new \Exception('obrázek nelze přečíst: ' . $doplnek->cesta);
           }
