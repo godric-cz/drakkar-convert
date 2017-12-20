@@ -27,7 +27,7 @@ class Postprocesor {
       $c = $this->clanek($castNazvu);
       $obrazky = $c->obrazky();
       if(count($obrazky) != count($posuny))
-        throw new \Exception("počet obrázků v článku neodpovídá počtu v yaml souboru");
+        throw new \Exception("počet obrázků v článku $castNazvu (" . count($obrazky) . ") neodpovídá počtu v yaml souboru (" . count($posuny) . ")");
       foreach($obrazky as $i => $obrazek) {
         $obrazek->presunZa($posuny[$i]);
       }
