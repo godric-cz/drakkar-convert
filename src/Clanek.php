@@ -109,41 +109,62 @@ class Clanek {
    * neobjevily v textu článku.
    */
   private function nactiAVymazHlavicky($element) {
-    foreach($element->children() as $potomek) {
 
-      // titulek
-      if(preg_match('@Z-hlav--.-titul@', $potomek->class) && !empty($potomek->innertext)) {
+    // RV => funkce na zpcracování řádkového textu
+    $filtry = [
+
+      // titulek článku
+      'Z-hlav--.-titul|Pov-dka---nadpis' => function($text) {
         if(!empty($this->hlavicky['Title']))
-          throw new Exception('Nalezen další titulek "' . $potomek->outertext . '".');
-        $this->hlavicky['Title'] = self::filtrujRadek($potomek->innertext);
-        $potomek->outertext = '';
-      }
+          throw new Exception("Nalezen druhý titulek '$text'.");
+        $this->hlavicky['Title'] = $text;
+      },
 
       // autoři a štítky
-      if(preg_match('@-rubrika$@', $potomek->class)) {
+      '-rubrika$' => function($text) {
         // v jednom elementu může být víc položek oddělených tabem
-        foreach(explode("\t", self::filtrujRadek($potomek->innertext)) as $polozka) {
+        foreach(explode("\t", $text) as $polozka) {
           // jestli je to štítek nebo autor se rozliší podle obsahu
           if(preg_match('@^(napsala?|připravila?)\s+(.*)$@', $polozka, $shody)) {
             $this->hlavicky['Authors'][] = $shody[2];
           } else {
-            $this->hlavicky['Tags'][] = $polozka;
+            $this->hlavicky['Tags'][$polozka] = true;
           }
         }
-        $potomek->outertext = '';
-      }
+      },
 
+      // autor u povídek
+      'Pov-dka---autor' => function($text) {
+        $this->hlavicky['Tags']['povídka'] = true;
+        if(preg_match('@^Přeložila?\s+(.*)@', $text, $shody)) {
+          $this->hlavicky['Tags']['překlad'] = true;
+          $this->hlavicky['Authors'][] = $shody[1];
+        } else {
+          $this->hlavicky['Authors'][] = $text;
+        }
+      },
+
+    ];
+
+    // přečíst a vymazat elementy definované ve filtrech
+    foreach($element->children() as $potomek) {
+      foreach($filtry as $rv => $filtr) {
+        if(preg_match('@' . $rv . '@', $potomek->class) && !empty($potomek->innertext)) {
+          $filtr(self::filtrujRadek($potomek->innertext));
+          $potomek->outertext = '';
+        }
+      }
     }
 
     if(empty($this->hlavicky['Title'])) throw new ElementNeniClanek;
     $this->hlavicky['Fulltext'] = 'yes';
+    $this->hlavicky['Tags'] = array_keys($this->hlavicky['Tags']);
 
     // seřadit hlavičky
     $hlavicky = array_merge(array_flip(self::$poradiHlavicek), $this->hlavicky);
     $hlavicky = array_intersect_key($hlavicky, $this->hlavicky);
     $this->hlavicky = $hlavicky;
   }
-
 
   function url() {
     return self::urlPreved($this->hlavicky['Title']);

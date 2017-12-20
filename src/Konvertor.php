@@ -49,24 +49,13 @@ class Konvertor {
     if(!is_writeable($vystupniSlozka))
       throw new \Exception('Do výstupní složky nelze zapisovat.');
 
-    /*
-      if($this->bezObrazku) $c->bezObrazku(true);
-
-      if(strpos($c->url(), 'bezejmenny-hrdina') !== false) {
-        // lepší kvalita obrázků pro bezejmenného hrdinu
-        $obrazek->sirka = 1000;
-        $obrazek->kvalita = 98;
-      }
-
-      if($this->debug) echo $c->md(), "\n\n\n\n\n\n";
-    */
-
     $clankyYaml = '';
     foreach($clanky as $clanek) {
       $clanekSoubor = $clanek->url() . '.md';
       file_put_contents($vystupniSlozka . '/' . $clanekSoubor, $clanek->md());
       $clankyYaml .= "- $clanekSoubor\n";
-      //$clanek->konvertujObrazky(dirname($vstupniHtmlSoubor), $vystupniSlozka);
+      if(!$this->bezObrazku)
+        $clanek->konvertujObrazky(dirname($vstupniHtmlSoubor), $vystupniSlozka);
     }
 
     // vytvořit yaml seznam článku ve vydání
