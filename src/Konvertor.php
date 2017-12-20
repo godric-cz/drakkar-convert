@@ -27,76 +27,55 @@ class Konvertor {
       return $this->debug;
   }
 
+  private function nactiClanky($htmlRetezec) {
+    $html = HtmlDomParser::str_get_html(file_get_contents($htmlRetezec));
+
+    $clanky = [];
+    foreach($html->find('body', 0)->children() as $element) {
+      try {
+        $clanky[] = new Clanek($element);
+      } catch(ElementNeniClanek $e) {}
+    }
+
+    return $clanky;
+  }
+
   function preved($vstupniHtmlSoubor, $vystupniSlozka, $vydani) {
-    $html = HtmlDomParser::str_get_html(file_get_contents($vstupniHtmlSoubor));
+    $clanky = $this->nactiClanky($vstupniHtmlSoubor);
 
-    $souboryClanku = [];
-    foreach($html->find('[class^=Z-hlav]') as $e) {
-      if(
-        !preg_match('@Z-hlav--.-titul@', $e->class) ||  // skip not head titles, parser cannot do multiple attribute selectors
-        $e->innertext == ''
-      ) continue;
+    // vytvoření složky pro výstup
+    if(!is_dir($vystupniSlozka) && !mkdir($vystupniSlozka))
+      throw new \Exception('Výstupní složka neexistuje a nejde ani vytvořit.');
+    if(!is_writeable($vystupniSlozka))
+      throw new \Exception('Do výstupní složky nelze zapisovat.');
 
-      $nadpis = $e;
-      $e = $e->parent();
-      $c = new Clanek;
+    /*
       if($this->bezObrazku) $c->bezObrazku(true);
 
-      $c->hlavicka['Title'] = strtr(html_entity_decode($nadpis->innertext), ['<br>' => ' ', '<br />' => ' ']);
-      $nadpis->outertext = '';
-
-      // rozdělení stylu "rubrika" na autory a tagy
-      $rubriky = $this->rubriky($e);
-      foreach($rubriky as $r) {
-        $r = preg_replace('@^napsala?\s+|^připravila?\s+@', '', $r, 1, $pocet);
-        if($pocet > 0)
-          $c->hlavicka['Authors'][] = $r;
-        else
-          $c->hlavicka['Tags'][] = $r;
-      }
-
-      // redukce tagů na markdown
-      $text = $this->prekladac->preloz($e);
-      $c->text = $text;
-
-      // obrázky a poznámky
-      $dalsi = $e;
-      while($dalsi = $dalsi->next_sibling()) {
-        $class = $dalsi->class;
-        if($class == 'marginalie') {
-          continue;
-        } elseif(strpos($class, 'Obr-zek-') === 0 || $class == 'frame-2') {
-          if($dalsi->find('img', 0)->alt == 'blackbg.png') continue; // přeskočit obrázkové pozadí bezejmenných hrdinů
-          $src = urldecode($dalsi->find('img', 0)->src);
-          $obrazek = new Obrazek;
-          $obrazek->cesta = dirname($vstupniHtmlSoubor) . '/' . $src;
-          $c->doplnky[] = $obrazek;
-          if(strpos($c->url(), 'bezejmenny-hrdina') !== false) {
-            // lepší kvalita obrázků pro bezejmenného hrdinu
-            $obrazek->sirka = 1000;
-            $obrazek->kvalita = 98;
-          }
-        } elseif(strpos($class, 'Sidebar-') === 0) {
-          $c->doplnky[] = '<div class="sidebar">' . trim($dalsi->innertext) . '</div>';
-        } else {
-          break;
-        }
+      if(strpos($c->url(), 'bezejmenny-hrdina') !== false) {
+        // lepší kvalita obrázků pro bezejmenného hrdinu
+        $obrazek->sirka = 1000;
+        $obrazek->kvalita = 98;
       }
 
       if($this->debug) echo $c->md(), "\n\n\n\n\n\n";
+    */
 
-      $c->zapisDoSlozky($vystupniSlozka);
-      $souboryClanku[] = $c->url() . '.md'; // TODO lépe nějaká třída kolekce článků, co to pořeší
+    $clankyYaml = '';
+    foreach($clanky as $clanek) {
+      $clanekSoubor = $clanek->url() . '.md';
+      file_put_contents($vystupniSlozka . '/' . $clanekSoubor, $clanek->md());
+      $clankyYaml .= "- $clanekSoubor\n";
+      //$clanek->konvertujObrazky(dirname($vstupniHtmlSoubor), $vystupniSlozka);
     }
 
-    // vytvořit seznam článků
-    $i = pathinfo($vstupniHtmlSoubor);
-    $pdfVerze = $i['filename'] . '.pdf';
+    // vytvořit yaml seznam článku ve vydání
+    $pdfVerze = pathinfo($vstupniHtmlSoubor)['filename'] . '.pdf';
     file_put_contents($vystupniSlozka . '/metadata.yaml',
       "---\n" .
       "pdf: $pdfVerze\n" .
       "articles: \n- uvodni-haiku.md\n" .
-      implode('', array_map(function($e){ return "- $e\n"; }, $souboryClanku))
+      $clankyYaml
     );
 
     // případný postprocessing
@@ -106,27 +85,6 @@ class Konvertor {
       $p = new Postprocesor($vystupniSlozka, $postprocesor);
       $p->spust();
     }
-  }
-
-  /**
-   * Vyhledá v elemetu článku "rubriky" (autory a tagy) a vrátí pole řetězců
-   */
-  protected function rubriky($e) {
-    $rubriky = [];
-    foreach($e->find('[class$=-rubrika]') as $re) {
-      $text = html_entity_decode($re->innertext);
-      $text = trim($text);
-      $text = strtr($text, ['<span>2</span>' => '²']); // E² ;)
-      if(strpos($text, "\t") !== false)
-        $rubriky = array_merge($rubriky, explode("\t", $text));
-      else
-        $rubriky[] = $text;
-      $re->outertext = '';
-      // ukončit, aby se nenačetly elementy později v textu
-      $next = $re->next_sibling();
-      if(!preg_match('@-rubrika$@', $next->class)) break;
-    }
-    return $rubriky;
   }
 
   function zachovatTagy($set) {

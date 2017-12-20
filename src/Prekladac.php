@@ -4,6 +4,9 @@ namespace Drakkar;
 
 use Sunra\PhpSimple\HtmlDomParser;
 
+/**
+ * Slouží k překladu vnitřního HTML textu článku na markdown.
+ */
 class Prekladac {
 
   private
@@ -28,7 +31,8 @@ class Prekladac {
     'ol'                  =>  "@\n\n",
     'p[class^=P--klad]'   =>  ["{{priklad}}@{{/priklad}}\n\n", 'orez' => true],
     'p[class=Seznam-bez-punt-k-]' =>  ["* @\n", 'posledni' => "* @\n\n"], // TODO mělo by být bez puntíků
-     // p musí být poslední, protože modifikace inner/outertextů degraduje schopnost vyhledávat v DOMu
+
+    // p musí být poslední, protože modifikace inner/outertextů degraduje schopnost vyhledávat v DOMu
     'p'                   =>  "@\n\n",
   ];
 
@@ -49,7 +53,7 @@ class Prekladac {
     if(!$this->zachovatTagy) $text = strip_tags($text); // nutné zde kvůli správnému oříznutí řádků
     $text = html_entity_decode($text, ENT_HTML5, 'utf-8');
     $text = preg_replace('@^[ \t]+|[ \t]+$@m', '', $text);
-    $text = preg_replace('@ +@', ' ', $text); // sloučit vícenásobné mezery
+    $text = preg_replace('@[ \t]+@', ' ', $text); // sloučit vícenásobné mezery
 
     $bileznaky = html_entity_decode('&nbsp;') . '\s'; // pcre modifikátor "s" nebere v úvahu utf-8 kódované nbsp
     $text = preg_replace("@\n[$bileznaky]*\n+@", "\n\n", $text);

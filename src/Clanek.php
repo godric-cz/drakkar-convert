@@ -4,76 +4,152 @@ namespace Drakkar;
 
 use Intervention\Image\ImageManagerStatic as Image;
 use Intervention\Image\Exception\NotReadableException as ImageNotReadableException;
+use \Exception;
 
 class Clanek {
 
-  public
-    $bezObrazku = false,
-    $doplnky,
-    $hlavicka,
-    $slozka = null,
-    $text;
+  private
+    $doplnky = [],
+    $hlavicky = [],
+    $obrazky = [],
+    $obsah;
 
-  function bezObrazku($set) {
-    $this->bezObrazku = $set;
+  private static $poradiHlavicek = [
+    'Title',
+    'Authors',
+    'Tags',
+    'Color', // TODO
+    'Summary', // TODO není, pouze "úvodní haiku" to vypadá
+    'Fulltext',
+  ];
+
+  /**
+   * Vytvoří článek z objektu html elementu.
+   */
+  function __construct($element) {
+    $this->nactiAVymazHlavicky($element);
+    $this->nactiDoplnky($element);
+    $this->obsah = (new Prekladac)->preloz($element);
   }
 
-  protected function doplnkyMd() {
-    if(!$this->doplnky) return '';
-
-    $out = "\n\n---\n\n";
-    foreach($this->doplnky as $doplnek) {
-      if($doplnek instanceof Obrazek) {
-        $i = pathinfo($doplnek->cesta);
-        $cil = $this->urlPreved($i['filename']) . '.jpg';
-        $out .= "![obrazek]($cil)\n\n";
-        if($this->slozka && !$this->bezObrazku) {
-          // TODO vysunout nastavení obrázků ven
-          $constraints = function($constraint) { $constraint->upsize(); }; // jen zvětšit
-          try {
-            Image::make($doplnek->cesta)
-              ->widen($doplnek->sirka, $constraints)
-              ->save($this->slozka . '/' . $cil, $doplnek->kvalita);
-          } catch(ImageNotReadableException $e) {
-            throw new \Exception('obrázek nelze přečíst: ' . $doplnek->cesta);
-          }
-        }
-      } else {
-        $out .= $doplnek . "\n\n";
-      }
-    }
+  /**
+   * Převede HTML řetězec načtený z prvku v hlavičkách na uklizený utf-8
+   * jednořádkový výsledek.
+   */
+  private static function filtrujRadek($retezec) {
+    $out = $retezec;
+    $out = html_entity_decode($out);
+    $out = trim($out);
+    $out = strtr($out, [
+      '<br>'            =>  ' ',
+      '<br />'          =>  ' ',
+      '<span>2</span>'  =>  '²', // E² :)
+    ]);
+    $out = strip_tags($out);
     return $out;
   }
 
   /**
-   * @return text článku v markdownu vč. front matter
+   * @return string text článku v markdownu vč. front matter
    */
   function md() {
-    $out = '';
+    $out = "---\n";
 
-    $hlavicky = $this->hlavicka;
-    $hlavicky['Fulltext'] = 'yes';
-    $out .= "---\n";
-    foreach($hlavicky as $pole => $hodnota) {
+    foreach($this->hlavicky as $pole => $hodnota) {
       if($pole == 'Title')    $hodnota = '"' . $hodnota . '"';
       if(is_array($hodnota))  $hodnota = implode(', ', $hodnota);
       $out .= "$pole: $hodnota\n";
     }
+
     $out .= "---\n";
 
-    $out .= $this->text;
+    $out .= $this->obsah;
 
-    $out .= $this->doplnkyMd();
+    if($this->doplnky) {
+      $out .= "\n\n---\n\n";
+      $out .= implode("\n\n", $this->doplnky);
+      $out .= "\n\n";
+    }
 
     $out = preg_replace('@[\n\s]+$@', "\n", $out);
     return $out;
   }
 
-  function url() {
-    return $this->urlPreved($this->hlavicka['Title']);
+  /**
+   * Načte doplňky (obrázky, sidebary) k článku z elementů _následujících_
+   * předanému elementu.
+   */
+  private function nactiDoplnky($element) {
+    $dalsi = $element;
+
+    while($dalsi = $dalsi->next_sibling()) {
+      $class = $dalsi->class;
+
+      if($class == 'marginalie') {
+        continue;
+      } elseif(strpos($class, 'Obr-zek-') === 0 || $class == 'frame-2') {
+        if($dalsi->find('img', 0)->alt == 'blackbg.png') continue; // přeskočit obrázkové pozadí bezejmenných hrdinů
+
+        $vstupniSoubor  = urldecode($dalsi->find('img', 0)->src);
+        $vystupniSoubor = self::urlPreved(substr(basename($vstupniSoubor), 0, strrpos(basename($vstupniSoubor), '.'))) . '.jpg';
+
+        $this->doplnky[] = "![obrazek]($vystupniSoubor)";
+        $this->obrazky[] = [$vstupniSoubor, $vystupniSoubor]; // zapamatovat pro případnou pozdější konverzi
+      } elseif(strpos($class, 'Sidebar-') === 0) {
+        $this->doplnky[] = '<div class="sidebar">' . trim($dalsi->innertext) . '</div>';
+      } else {
+        break;
+      }
+    }
   }
 
-  protected function urlPreved($r) {
+  /**
+   * Načte hlavičky (název, autory, ...) z elementu článku. Tato metoda
+   * hlavičkové podelementy zároveň nahradí prázdnými řetězci, aby se později
+   * neobjevily v textu článku.
+   */
+  private function nactiAVymazHlavicky($element) {
+    foreach($element->children() as $potomek) {
+
+      // titulek
+      if(preg_match('@Z-hlav--.-titul@', $potomek->class) && !empty($potomek->innertext)) {
+        if(!empty($this->hlavicky['Title']))
+          throw new Exception('Nalezen další titulek "' . $potomek->outertext . '".');
+        $this->hlavicky['Title'] = self::filtrujRadek($potomek->innertext);
+        $potomek->outertext = '';
+      }
+
+      // autoři a štítky
+      if(preg_match('@-rubrika$@', $potomek->class)) {
+        // v jednom elementu může být víc položek oddělených tabem
+        foreach(explode("\t", self::filtrujRadek($potomek->innertext)) as $polozka) {
+          // jestli je to štítek nebo autor se rozliší podle obsahu
+          if(preg_match('@^(napsala?|připravila?)\s+(.*)$@', $polozka, $shody)) {
+            $this->hlavicky['Authors'][] = $shody[2];
+          } else {
+            $this->hlavicky['Tags'][] = $polozka;
+          }
+        }
+        $potomek->outertext = '';
+      }
+
+    }
+
+    if(empty($this->hlavicky['Title'])) throw new ElementNeniClanek;
+    $this->hlavicky['Fulltext'] = 'yes';
+
+    // seřadit hlavičky
+    $hlavicky = array_merge(array_flip(self::$poradiHlavicek), $this->hlavicky);
+    $hlavicky = array_intersect_key($hlavicky, $this->hlavicky);
+    $this->hlavicky = $hlavicky;
+  }
+
+
+  function url() {
+    return self::urlPreved($this->hlavicky['Title']);
+  }
+
+  private static function urlPreved($r) {
     $sDia   = "ÁÄČÇĎÉĚËÍŇÓÖŘŠŤÚŮÜÝŽáäčçďéěëíňóöřšťúůüýž";
     $bezDia = "aaccdeeeinoorstuuuyzaaccdeeeinoorstuuuyz";
     $r = iconv('utf-8', 'Windows-1250//IGNORE', $r);
@@ -84,14 +160,6 @@ class Clanek {
     return $r;
   }
 
-  function zapisDoSlozky($slozka) {
-    if(!is_dir($slozka) && !mkdir($slozka)) throw new \Exception('složka neexistuje a nejde ani vytvořit');
-    if(!is_writeable($slozka)) throw new \Exception('do složky nelze zapsat');
-    $this->slozka = $slozka;
-    file_put_contents(
-      $this->slozka . '/' . $this->url() . '.md',
-      $this->md()
-    );
-  }
-
 }
+
+class ElementNeniClanek extends Exception {}
