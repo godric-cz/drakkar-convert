@@ -139,8 +139,10 @@ class Clanek {
 
       // titulek článku
       'Z-hlav--.-titul|Pov-dka---nadpis' => function($text) {
+        // duplicitní titulky ponechat v textu (jsou to názvy podčlánků u článků z více částí)
         if(!empty($this->hlavicky['Title']))
-          throw new Exception("Nalezen druhý titulek '$text'.");
+          return false;
+
         $this->hlavicky['Title'] = $text;
       },
 
@@ -174,7 +176,8 @@ class Clanek {
     foreach($element->children() as $potomek) {
       foreach($filtry as $rv => $filtr) {
         if(preg_match('@' . $rv . '@', $potomek->class) && !empty($potomek->innertext)) {
-          $filtr(self::filtrujRadek($potomek->innertext));
+          $vysledek = $filtr(self::filtrujRadek($potomek->innertext));
+          if($vysledek === false) continue;
           $potomek->outertext = '';
         }
       }

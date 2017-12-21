@@ -20,8 +20,9 @@ class Prekladac {
   //  posledni - změněný přepis u elementů, po kterých následuje jiný element
   private static $prepisy = [
     'a[href]'             =>  '[@](@href)',
-    '[class^=Nadpis-]'    =>  "# @ \n\n",
-    '[class^=Podnadpis-]' =>  "## @\n\n",
+    '[class^=Z-hlav--C-titul]' => "# @\n\n",
+    '[class^=Nadpis-]'    =>  "## @\n\n",
+    '[class^=Podnadpis-]' =>  "### @\n\n",
     '[class*=Tu-n-]'      =>  '__@__',
     '[class*=Kurz-va]'    =>  '_@_',
     'li [class^=char-style-override-]' =>  '',
@@ -58,6 +59,9 @@ class Prekladac {
     $bileznaky = html_entity_decode('&nbsp;') . '\s'; // pcre modifikátor "s" nebere v úvahu utf-8 kódované nbsp
     $text = preg_replace("@\n[$bileznaky]*\n+@", "\n\n", $text);
     if(!$this->zachovatTagy) $text = $this->prelozMeta($text);
+
+    $text = $this->normalizujUrovenNadpisu($text);
+
     return $text;
   }
 
@@ -102,6 +106,19 @@ class Prekladac {
   protected static function in_array_preg($needle, $haystack) {
     foreach($haystack as $e) if(preg_match('@'.$e.'@', $needle)) return true;
     return false;
+  }
+
+  /**
+   * Pokud jsou v textu jen nadpisy 2. úrovně, převede všechny nadpisy o úroveň
+   * výš.
+   */
+  protected function normalizujUrovenNadpisu($text) {
+    // pokud tam není h1 (markdown)
+    if(!preg_match('/^# /m', $text)) {
+      // převést všechny nadpisy o úroveň výš
+      $text = preg_replace('/^#(#*) /m', '$1 ', $text);
+    }
+    return $text;
   }
 
   protected function prelozMeta($text) {
