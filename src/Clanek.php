@@ -42,8 +42,8 @@ class Clanek {
     $out = strtr($out, [
       '<br>'            =>  ' ',
       '<br />'          =>  ' ',
-      '<span>2</span>'  =>  '²', // E² :)
     ]);
+    $out = preg_replace('/<span[^>]*>2<\/span>/', '²', $out); // E² :)
     $out = strip_tags($out);
     return $out;
   }
