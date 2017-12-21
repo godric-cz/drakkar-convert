@@ -162,9 +162,11 @@ class Clanek {
       // autor u povídek
       'Pov-dka---autor' => function($text) {
         $this->hlavicky['Tags']['povídka'] = true;
-        if(preg_match('@^Přeložila?\s+(.*)@', $text, $shody)) {
+        if(preg_match('/^Přeložila?\s+(.*)/', $text, $shody)) {
           $this->hlavicky['Tags']['překlad'] = true;
           $this->hlavicky['Authors'][] = $shody[1];
+        } else if(preg_match('/^[\s\W]*$/', $text)) { // jen mezery a smetí
+          return false;
         } else {
           $this->hlavicky['Authors'][] = $text;
         }
