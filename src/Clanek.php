@@ -148,11 +148,17 @@ class Clanek {
 
       // autoři a štítky
       '-rubrika$' => function($text) {
+        // autory po titulku ponechat v textu (článek z více částí)
+        if(!empty($this->hlavicky['Title']))
+          return false;
+
         // v jednom elementu může být víc položek oddělených tabem
         foreach(explode("\t", $text) as $polozka) {
           // jestli je to štítek nebo autor se rozliší podle obsahu
           if(preg_match('@^(napsala?|připravila?)\s+(.*)$@', $polozka, $shody)) {
             $this->hlavicky['Authors'][] = $shody[2];
+          } else if($polozka == 'různí autoři') {
+            $this->hlavicky['Authors'][] = 'různí autoři';
           } else {
             $this->hlavicky['Tags'][$polozka] = true;
           }
