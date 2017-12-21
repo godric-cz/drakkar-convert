@@ -3,7 +3,6 @@
 namespace Drakkar;
 
 use Intervention\Image\ImageManagerStatic as Image;
-use Intervention\Image\Exception\NotReadableException as ImageNotReadableException;
 use \Exception;
 
 class Clanek {
@@ -47,6 +46,31 @@ class Clanek {
     ]);
     $out = strip_tags($out);
     return $out;
+  }
+
+  /**
+   * Škáluje a zkomprimuje obrázky u článku pro publikaci na webu.
+   * @param string $zdrojovaSlozka složka, vůči níž jsou udány src parametry
+   *  obrázků v původním html souboru.
+   * @param string $cilovaSlozka složka, do níž se zkonvertované obrázky mají
+   *  zapsat. Měla by být stejná jako výstup .md souboru.
+   */
+  function konvertujObrazky($zdrojovaSlozka, $cilovaSlozka) {
+    foreach($this->obrazky as [$zdroj, $cil]) {
+      $kvalita = 92;
+      $sirka   = 555;
+
+      // lepší kvalita obrázků pro bezejmenného hrdinu
+      if(strpos($this->url(), 'bezejmenny-hrdina') !== false) {
+        $kvalita = 98;
+        $sirka   = 1000;
+      }
+
+      $jenZvetsit = function($constraint) { $constraint->upsize(); };
+      Image::make($zdrojovaSlozka . '/' . $zdroj)
+        ->widen($sirka, $jenZvetsit)
+        ->save($cilovaSlozka . '/' . $cil, $kvalita);
+    }
   }
 
   /**
