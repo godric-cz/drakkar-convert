@@ -45,6 +45,7 @@ class Prekladac {
   ];
 
   function preloz($text) {
+    $text = html_entity_decode($text, ENT_HTML5, 'utf-8');
     $e = HtmlDomParser::str_get_html($text); // znovusestavení DOMu bez odstraněných elementů
 
     $this->aplikujPrepisy($e);
@@ -53,7 +54,6 @@ class Prekladac {
     $text = $e->innertext;
     $text = preg_replace('@^<div>|</div>$@', '', $text);
     if(!$this->zachovatTagy) $text = strip_tags($text); // nutné zde kvůli správnému oříznutí řádků
-    $text = html_entity_decode($text, ENT_HTML5, 'utf-8');
     $text = preg_replace('@^[ \t]+|[ \t]+$@m', '', $text);
     $text = preg_replace('@[ \t]+@', ' ', $text); // sloučit vícenásobné mezery
 
