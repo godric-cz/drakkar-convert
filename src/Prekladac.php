@@ -18,13 +18,14 @@ class Prekladac {
   // Operace:
   //  orez - trim na obsahu
   //  posledni - změněný přepis u elementů, po kterých následuje jiný element
+  //  mezeryVen - přesunout mezery kolem obsahu před a za celý přepis
   private static $prepisy = [
     'a[href]'             =>  '[@](@href)',
     '[class^=Z-hlav--C-titul]' => "# @\n\n",
     '[class^=Nadpis-]'    =>  "## @\n\n",
     '[class^=Podnadpis-]' =>  "### @\n\n",
-    '[class*=Tu-n-]'      =>  '__@__',
-    '[class*=Kurz-va]'    =>  '_@_',
+    '[class*=Tu-n-]'      =>  ['__@__', 'mezeryVen' => true],
+    '[class*=Kurz-va]'    =>  ['_@_',   'mezeryVen' => true],
     'li [class^=char-style-override-]' =>  '',
     'ul li'               =>  "\n* @",
     'ul'                  =>  "@\n\n",
@@ -79,21 +80,43 @@ class Prekladac {
         if(is_array($pravidlo)) {
           $orez = isset($pravidlo['orez']);
           $posledni = isset($pravidlo['posledni']) ? $pravidlo['posledni'] : null;
+          $mezeryVen = isset($pravidlo['mezeryVen']);
           $prepis = $pravidlo[0];
         } else {
           $orez = false;
           $posledni = null;
+          $mezeryVen = false;
           $prepis = $pravidlo;
         }
+
         // nahrazení spec. znaků v pravidle hodnotami
         if($posledni && ($e->next_sibling()->class != $e->class || $e->next_sibling()->innertext == '')) // workaroud jen porovnání class místo hledání v elementech
           $prepis = $posledni;
         if(strpos($prepis, '@href') !== false)
           $prepis = str_replace('@href', $e->href, $prepis);
-        $prepis = str_replace('@', $orez ? trim($e->innertext) : $e->innertext, $prepis);
+
+        $vnitrniText = $e->innertext;
+        if($orez) {
+          $vnitrniText = trim($vnitrniText);
+        } else if($mezeryVen) {
+          preg_match('/^(\s*)(.*?)(\s*)$/', $vnitrniText, $shody);
+          $mezeryPred  = $shody[1];
+          $vnitrniText = $shody[2];
+          $mezeryZa    = $shody[3];
+        }
+
+        // nahradit vnitřek elementu finálním přepisem vč. vnitřního textu
+        $prepis = str_replace('@', $vnitrniText, $prepis);
         if(trim($e->innertext) == '') // prázdné elementy vypustit
           $prepis = '';
         $e->innertext = $prepis;
+
+        // doplnit vnější mezery, pokud je třeba (implicitně odstraní i HTML tagy)
+        if($mezeryVen) {
+          $e->outertext = $mezeryPred . $prepis . $mezeryZa;
+          $e->modified = true;
+        }
+
         // odstranění tagů kvůli snadnějšímu debugování
         if(!isset($e->modified) && ($selector != 'p' || self::in_array_preg($e->class, self::$znameTridyOdstavcu))) {
           $e->outertext = $prepis;
