@@ -54,8 +54,16 @@ class Prekladac {
     $text = $e->innertext;
     $text = preg_replace('@^<div>|</div>$@', '', $text);
     if(!$this->zachovatTagy) $text = strip_tags($text); // nutné zde kvůli správnému oříznutí řádků
-    $text = preg_replace('@^[ \t]+|[ \t]+$@m', '', $text);
-    $text = preg_replace('@[ \t]+@', ' ', $text); // sloučit vícenásobné mezery
+
+    $nbsp = html_entity_decode('&nbsp;');
+
+    // odstranit mezery na začátku a konci řádku
+    $text = preg_replace("/^[ \\t$nbsp]+|[ \\t$nbsp]+$/um", '', $text);
+
+    // sloučit vícenásobné mezery
+    // nbsp nahrazovat mezerou jen, pokud má kolem sebe i normální mezery
+    // nbsp musí být první, protože jinak by regex padl do druhého pravidla a nbsp by nebylo nalezeno
+    $text = preg_replace("/[ \\t$nbsp]{2,}|[ \\t]+/um", ' ', $text);
 
     $bileznaky = html_entity_decode('&nbsp;') . '\s'; // pcre modifikátor "s" nebere v úvahu utf-8 kódované nbsp
     $text = preg_replace("@\n[$bileznaky]*\n+@", "\n\n", $text);
