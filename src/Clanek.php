@@ -4,6 +4,7 @@ namespace Drakkar;
 
 use Intervention\Image\ImageManagerStatic as Image;
 use \Exception;
+use Intervention\Image\Exception\NotReadableException;
 
 class Clanek {
 
@@ -66,10 +67,14 @@ class Clanek {
         $sirka   = 1000;
       }
 
-      $jenZvetsit = function($constraint) { $constraint->upsize(); };
-      Image::make($zdrojovaSlozka . '/' . $zdroj)
-        ->widen($sirka, $jenZvetsit)
-        ->save($cilovaSlozka . '/' . $cil, $kvalita);
+      try {
+        $jenZvetsit = function($constraint) { $constraint->upsize(); };
+        Image::make($zdrojovaSlozka . '/' . $zdroj)
+          ->widen($sirka, $jenZvetsit)
+          ->save($cilovaSlozka . '/' . $cil, $kvalita);
+      } catch (NotReadableException $e) {
+        throw new Exception("Obrázek '$zdrojovaSlozka/$zdroj' nelze přečíst.\n\nNepokazilo se kódování v názvu souboru při rozbalení archivu?");
+      }
     }
   }
 
