@@ -174,7 +174,8 @@ class Clanek {
                     } elseif ($polozka == 'různí autoři') {
                         $this->hlavicky['Authors'][] = 'různí autoři';
                     } else {
-                        $this->hlavicky['Tags'][$polozka] = true;
+                        $tag = mb_strtolower($polozka);
+                        $this->hlavicky['Tags'][$tag] = true;
                     }
                 }
             },
