@@ -14,18 +14,19 @@ composer install
 ## Použití
 
 ```bash
-php convert.php
+./convert -i /vstupni/slozka -o /vystupni/slozka -v 74
 ```
 
-Ve výchozím nastavení je potřeba zdrojové html + resources nahrát do složky `in` a výstup se uloží do složky `out`. Součástí výstupu jsou zmenšené obrázky.
+Zdrojové html + resources je potřeba dát do složky -i, v složce -o se vytvoří/přepíše podsložka s konkrétním zkonvertovaným číslem. Součástí výstupu jsou zmenšené obrázky.
 
 ## Parametry
 
 - __-v číslo__ – konvertovat pouze jedno konkrétní vydání
 - __-d__ – debug: zobrazit mezivýsledek na stdout
 - __-t__ – zachovat neznámé html tagy ve výstupu
+- __-i složka__ - input: hledat vstupní html v této šložce
 - __-o složka__ – output: uložit výstup do určité složky (uvnitř ní se vždy vytvoří podsložky pro jednotlivá čísla. Ideální pro složku `content` z repa [casopisdrakkar/clanky](https://github.com/casopisdrakkar/clanky).)
-- __-b__ – nevytváří obrázky, pouze texty
+- __-b__ – bez obrázků: nevytváří obrázky, pouze texty
 
 ## Korekce
 
@@ -33,14 +34,14 @@ Výstup ze sázecího systému přiloží všechny obrázky až na konec článk
 
 ```yaml
 obrfix:
-  veda:
-    - aktivní jádro.
-    - neutronových hvězd.
-    - Hawkingovu záření.
-  pet-setkani:
-    - vždycky žili.
-    - chtějí se domluvit.
-    - vše popíše.
+    veda:
+        - aktivní jádro.
+        - neutronových hvězd.
+        - Hawkingovu záření.
+    pet-setkani:
+        - vždycky žili.
+        - chtějí se domluvit.
+        - vše popíše.
 ```
 
 Obrfix jen říká, že se budou přesouvat obrázky, vnořené názvy (veda) jsou části názvů článků a položky (- aktivní jádro.) jsou konce odstavců, za které se mají obrázky postupně zařadit.

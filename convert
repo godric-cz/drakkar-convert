@@ -1,0 +1,41 @@
+#!/usr/bin/env php
+<?php
+
+namespace Drakkar;
+
+require_once 'vendor/autoload.php';
+
+$opt = getopt('v:dto:bi:');
+
+$out = 'out';
+$k = new Konvertor;
+
+if (isset($opt['d'])) {
+    $k->debug(true);
+}
+if (isset($opt['t'])) {
+    $k->zachovatTagy(true);
+}
+if (isset($opt['b'])) {
+    $k->bezObrazku(true);
+}
+if (isset($opt['o'])) {
+    $out = $opt['o'];
+}
+if (empty($opt['v'])) {
+    throw new \Exception('Konvertovat všechna čísla naráz není dobrý nápad. Použijte např. přepínač -v 64 pro konverzi čísla 64.');
+}
+
+$htmls = glob($opt['i'] . '/*.html');
+foreach ($htmls as $f) {
+    preg_match('@_(\d\d)(_|\.)@', basename($f), $m);
+    $vydani = $m[1];
+    if (isset($opt['v']) && $opt['v'] != $vydani) {
+        continue;
+    }
+
+    $outdir = $out . '/' . $vydani;
+    logger('Vstup:  %s', $f);
+    logger('Výstup: %s', $outdir);
+    $k->preved($f, $outdir, $vydani);
+}

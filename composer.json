@@ -1,12 +1,13 @@
 {
-  "require": {
-    "intervention/image": "^2.3",
-    "symfony/yaml": "^3.3",
-    "kub-at/php-simple-html-dom-parser": "^1.9"
-  },
-  "autoload": {
-    "psr-4": {
-      "Drakkar\\": "src/"
+    "require": {
+        "intervention/image": "^2.3",
+        "symfony/yaml": "^3.3",
+        "kub-at/php-simple-html-dom-parser": "^1.9"
+    },
+    "autoload": {
+        "files": ["src/_functions.php"],
+        "psr-4": {
+            "Drakkar\\": "src/"
+        }
     }
-  }
 }
