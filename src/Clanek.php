@@ -170,8 +170,10 @@ class Clanek {
                 foreach (explode("\t", $text) as $polozka) {
                     // jestli je to štítek nebo autor se rozliší podle obsahu
                     if (preg_match('@^(napsala?|připravila?)\s+(.*)$@', $polozka, $shody)) {
-                        $this->hlavicky['Authors'][] = $shody[2];
-                    } elseif ($polozka == 'různí autoři') {
+                        $autor = $shody[2];
+                        $autor = preg_match('/^\s*„([^“]+)“\s*$/', $autor, $shody2) ? $shody2[1] : $autor;
+                        $this->hlavicky['Authors'][] = $autor;
+                    } elseif (preg_match('/(napsali )?různí autoři/', $polozka)) {
                         $this->hlavicky['Authors'][] = 'různí autoři';
                     } else {
                         $tag = mb_strtolower($polozka);
