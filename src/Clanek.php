@@ -15,12 +15,12 @@ class Clanek {
     $obsah;
 
   private static $poradiHlavicek = [
+    'layout',
     'Title',
     'Authors',
     'Tags',
     'Color', // TODO
-    'Summary', // TODO není, pouze "úvodní haiku" to vypadá
-    'Fulltext',
+    'summary', // TODO není, pouze "úvodní haiku" to vypadá
   ];
 
   /**
@@ -59,7 +59,7 @@ class Clanek {
   function konvertujObrazky($zdrojovaSlozka, $cilovaSlozka) {
     foreach($this->obrazky as [$zdroj, $cil]) {
       $kvalita = 92;
-      $sirka   = 555;
+      $sirka   = 459;
 
       // lepší kvalita obrázků pro bezejmenného hrdinu
       if(strpos($this->url(), 'bezejmenny-hrdina') !== false) {
@@ -85,12 +85,13 @@ class Clanek {
     $out = "---\n";
 
     foreach($this->hlavicky as $pole => $hodnota) {
-      if($pole == 'Title')    $hodnota = '"' . $hodnota . '"';
-      if(is_array($hodnota))  $hodnota = implode(', ', $hodnota);
-      $out .= "$pole: $hodnota\n";
+      if(is_array($hodnota)) $hodnota = implode(', ', $hodnota);
+      if(str_contains($hodnota, ':')) $hodnota = '"' . $hodnota . '"';
+      $poleOut = strtolower($pole);
+      $out .= "$poleOut: $hodnota\n";
     }
 
-    $out .= "---\n";
+    $out .= "---\n\n";
 
     $out .= $this->obsah;
 
@@ -122,7 +123,7 @@ class Clanek {
         $vstupniSoubor  = urldecode($dalsi->find('img', 0)->src);
         $vystupniSoubor = self::urlPreved(substr(basename($vstupniSoubor), 0, strrpos(basename($vstupniSoubor), '.'))) . '.jpg';
 
-        $this->doplnky[] = "![obrazek]($vystupniSoubor)";
+        $this->doplnky[] = "![]($vystupniSoubor)";
         $this->obrazky[] = [$vstupniSoubor, $vystupniSoubor]; // zapamatovat pro případnou pozdější konverzi
       } elseif(strpos($class, 'Sidebar-') === 0) {
         $this->doplnky[] = '<div class="sidebar">' . trim($dalsi->innertext) . '</div>';
@@ -183,6 +184,11 @@ class Clanek {
         }
       },
 
+      // perex
+      'Z-hlav--.-perex' => function($text) {
+        $this->hlavicky['summary'] = $text;
+      }
+
     ];
 
     // přečíst a vymazat elementy definované ve filtrech
@@ -197,7 +203,7 @@ class Clanek {
     }
 
     if(empty($this->hlavicky['Title'])) throw new ElementNeniClanek;
-    $this->hlavicky['Fulltext'] = 'yes';
+    $this->hlavicky['layout'] = 'article';
     $this->hlavicky['Tags'] = array_keys($this->hlavicky['Tags']);
 
     // seřadit hlavičky
@@ -224,3 +230,7 @@ class Clanek {
 }
 
 class ElementNeniClanek extends Exception {}
+
+function str_contains($haystack, $needle) {
+  return strpos($haystack, $needle) !== false;
+}
