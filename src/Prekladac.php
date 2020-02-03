@@ -25,12 +25,12 @@ class Prekladac {
         '[class*=Tu-n-]' => ['__@__', 'mezeryVen' => true],
         '[class*=Kurz-va]' => ['_@_',   'mezeryVen' => true],
         'li [class^=char-style-override-]' => '',
-        'ul li' => "\n* @",
+        'ul li' => "\n- @",
         'ul' => "@\n\n",
         'ol li' => "\n1. @",
         'ol' => "@\n\n",
         'p[class^=P--klad]' => ["> @\n>\n", 'posledni' => "> @\n\n", 'orez' => true],
-        'p[class=Seznam-bez-punt-k-]' => ["* @\n", 'posledni' => "* @\n\n"], // TODO mělo by být bez puntíků
+        'p[class=Seznam-bez-punt-k-]' => ["- @\n", 'posledni' => "- @\n\n"], // TODO mělo by být bez puntíků
 
         // p musí být poslední, protože modifikace inner/outertextů degraduje schopnost vyhledávat v DOMu
         'p' => "@\n\n",

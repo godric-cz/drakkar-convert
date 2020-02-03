@@ -70,8 +70,8 @@ class Clanek {
                     $constraint->upsize();
                 };
                 Image::make($zdrojovaSlozka . '/' . $zdroj)
-          ->widen($sirka, $jenZvetsit)
-          ->save($cilovaSlozka . '/' . $cil, $kvalita);
+                ->widen($sirka, $jenZvetsit)
+                ->save($cilovaSlozka . '/' . $cil, $kvalita);
             } catch (NotReadableException $e) {
                 throw new Exception("Obrázek '$zdrojovaSlozka/$zdroj' nelze přečíst.\n\nNepokazilo se kódování v názvu souboru při rozbalení archivu?");
             }
@@ -93,6 +93,11 @@ class Clanek {
             }
             $poleOut = strtolower($pole);
             $out .= "$poleOut: $hodnota\n";
+        }
+
+        if (strlen($this->obsah) < 1000) {
+            // explicitně říct, že je to fulltext, pokud je článek krátký
+            $out .= "fulltext: true\n";
         }
 
         $out .= "---\n\n";
@@ -146,7 +151,7 @@ class Clanek {
      */
     private function nactiAVymazHlavicky($element) {
 
-    // RV => funkce na zpcracování řádkového textu
+        // RV => funkce na zpcracování řádkového textu
         $filtry = [
 
             // titulek článku
