@@ -42,6 +42,11 @@ obrfix:
         - vždycky žili.
         - chtějí se domluvit.
         - vše popíše.
+
+extra_doplnky:
+    ravnburgh: ['Místa na mapě']
 ```
 
-Obrfix jen říká, že se budou přesouvat obrázky, vnořené názvy (veda) jsou části názvů článků a položky (- aktivní jádro.) jsou konce odstavců, za které se mají obrázky postupně zařadit.
+`obrfix` -- budou přesouvat obrázky, vnořené názvy (veda) jsou části názvů článků a položky (- aktivní jádro.) jsou konce odstavců, za které se mají obrázky postupně zařadit.
+
+`extra_doplnky` -- v html je k článku nějaký doplněk (tj. html element za samotným článkem), který ale nemá požadované třídy a nedá se k článku přiřadit. Pokud se zadá tento parametr, hledá se fulltextově v obsahu elementu a pokud se shoduje, zachází se s ním jako s doplňkem.

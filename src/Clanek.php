@@ -24,9 +24,13 @@ class Clanek {
     /**
      * Vytvoří článek z objektu html elementu.
      */
-    function __construct($element) {
+    function __construct($element, $globalniConfig) {
         $this->nactiAVymazHlavicky($element);
-        $this->nactiDoplnky($element);
+        $config = $this->nactiConfig($globalniConfig);
+
+        $hledaneExtraDoplnky = $config['extra_doplnky'][0] ?? null;
+        $this->nactiDoplnky($element, $hledaneExtraDoplnky);
+
         $this->obsah = (new Prekladac)->preloz($element);
     }
 
@@ -117,8 +121,11 @@ class Clanek {
     /**
      * Načte doplňky (obrázky, sidebary) k článku z elementů _následujících_
      * předanému elementu.
+     * @param $element
+     * @param string? $hledanyText pokud je zadáno, bere se jako doplňek i
+     *  každý element obsahující daný text (bez ohledu na css třídu)
      */
-    private function nactiDoplnky($element) {
+    private function nactiDoplnky($element, $hledanyText = null) {
         $dalsi = $element;
 
         while ($dalsi = $dalsi->next_sibling()) {
@@ -138,6 +145,8 @@ class Clanek {
                 $this->obrazky[] = [$vstupniSoubor, $vystupniSoubor]; // zapamatovat pro případnou pozdější konverzi
             } elseif (strpos($class, 'Sidebar-') === 0) {
                 $this->doplnky[] = '<div class="sidebar">' . trim($dalsi->innertext) . '</div>';
+            } elseif ($hledanyText && str_contains($dalsi->innertext, $hledanyText)) {
+                $this->doplnky[] = '<div markdown="1">' . (new Prekladac)->preloz($dalsi->innertext) . '</div>';
             } else {
                 break;
             }
@@ -230,6 +239,26 @@ class Clanek {
         $hlavicky = array_merge(array_flip(self::$poradiHlavicek), $this->hlavicky);
         $hlavicky = array_intersect_key($hlavicky, $this->hlavicky);
         $this->hlavicky = $hlavicky;
+    }
+
+    /**
+     * Načte config článku z globálního konfigu tak, že nechá jen konfigy k
+     * tomuto článku a data dá přímo k sekci konfigu (tj. eliminuje 2. level
+     * klíčů ve vstupním yamlu)
+     */
+    private function nactiConfig($globalniConfig) {
+        $url = $this->url();
+        $out = [];
+
+        foreach ($globalniConfig as $sekce => $clanky) {
+            foreach ($clanky as $castUrlClanku => $config) {
+                if (str_contains($url, $castUrlClanku)) {
+                    $out[$sekce] = $config;
+                }
+            }
+        }
+
+        return $out;
     }
 
     function url() {

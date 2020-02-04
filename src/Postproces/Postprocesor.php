@@ -2,14 +2,13 @@
 
 namespace Drakkar\Postproces;
 
-use Symfony\Component\Yaml\Yaml;
-
 class Postprocesor {
-    private $postprocesor;
+    private $slozka;
+    private $config;
 
-    function __construct($slozka, $postprocesor) {
+    function __construct($slozka, $config) {
         $this->slozka = $slozka;
-        $this->postprocesor = $postprocesor;
+        $this->config = $config;
     }
 
     function clanek($castNazvu) {
@@ -20,7 +19,7 @@ class Postprocesor {
     }
 
     function spust() {
-        $yaml = Yaml::parse(file_get_contents($this->postprocesor));
+        $yaml = $this->config;
         foreach ($yaml['obrfix'] as $castNazvu => $posuny) {
             $c = $this->clanek($castNazvu);
             $obrazky = $c->obrazky();

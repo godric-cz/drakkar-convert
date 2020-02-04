@@ -4,6 +4,7 @@ namespace Drakkar;
 
 use KubAT\PhpSimple\HtmlDomParser;
 use Drakkar\Postproces\Postprocesor;
+use Symfony\Component\Yaml\Yaml;
 
 class Konvertor {
     private $bezObrazku = false;
@@ -26,13 +27,13 @@ class Konvertor {
         }
     }
 
-    private function nactiClanky($htmlRetezec) {
-        $html = HtmlDomParser::str_get_html(file_get_contents($htmlRetezec));
+    private function nactiClanky($htmlSoubor, $config) {
+        $html = HtmlDomParser::str_get_html(file_get_contents($htmlSoubor));
 
         $clanky = [];
         foreach ($html->find('body', 0)->children() as $element) {
             try {
-                $clanky[] = new Clanek($element);
+                $clanky[] = new Clanek($element, $config);
             } catch (ElementNeniClanek $e) {
             }
         }
@@ -40,8 +41,12 @@ class Konvertor {
         return $clanky;
     }
 
+    /**
+     * @param int $vydani číslo vydání
+     */
     function preved($vstupniHtmlSoubor, $vystupniSlozka, $vydani) {
-        $clanky = $this->nactiClanky($vstupniHtmlSoubor);
+        $config = Yaml::parseFile(dirname($vstupniHtmlSoubor) . '/' . $vydani . '.yaml');
+        $clanky = $this->nactiClanky($vstupniHtmlSoubor, $config);
 
         // vytvoření složky pro výstup
         if (!is_dir($vystupniSlozka) && !mkdir($vystupniSlozka)) {
@@ -77,13 +82,9 @@ class Konvertor {
             "---\n"
         );
 
-        // případný postprocessing
-        $i = pathinfo($vstupniHtmlSoubor);
-        $postprocesor = $i['dirname'] . '/' . $vydani . '.yaml';
-        if (is_file($postprocesor)) {
-            $p = new Postprocesor($vystupniSlozka, $postprocesor);
-            $p->spust();
-        }
+        // postprocessing
+        $p = new Postprocesor($vystupniSlozka, $config);
+        $p->spust();
     }
 
     function zachovatTagy($set) {
