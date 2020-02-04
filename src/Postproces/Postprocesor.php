@@ -20,6 +20,7 @@ class Postprocesor {
 
     function spust() {
         $yaml = $this->config;
+
         foreach ($yaml['obrfix'] as $castNazvu => $posuny) {
             $c = $this->clanek($castNazvu);
             $obrazky = $c->obrazky();
@@ -31,11 +32,20 @@ class Postprocesor {
             }
             $c->uloz();
         }
+
+        $rozdeleni = $yaml['rozdeleni'] ?? [];
+        foreach ($rozdeleni as $castNazvu => $config) {
+            $c = $this->clanek($castNazvu);
+            $r = new Rozdelovac;
+            $r->rozdelovac = $config['delit_podle'];
+            $r->atributy = $config['atributy'];
+            $r->rozdel($c->cesta, dirname($c->cesta));
+        }
     }
 }
 
 class Clanek {
-    private $cesta;
+    public $cesta;
     private $text;
 
     function __construct($cesta) {

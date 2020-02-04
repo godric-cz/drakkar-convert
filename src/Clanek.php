@@ -139,7 +139,7 @@ class Clanek {
                 } // přeskočit obrázkové pozadí bezejmenných hrdinů
 
                 $vstupniSoubor = urldecode($dalsi->find('img', 0)->src);
-                $vystupniSoubor = self::urlPreved(substr(basename($vstupniSoubor), 0, strrpos(basename($vstupniSoubor), '.'))) . '.jpg';
+                $vystupniSoubor = slugify(substr(basename($vstupniSoubor), 0, strrpos(basename($vstupniSoubor), '.'))) . '.jpg';
 
                 $this->doplnky[] = "![]($vystupniSoubor)";
                 $this->obrazky[] = [$vstupniSoubor, $vystupniSoubor]; // zapamatovat pro případnou pozdější konverzi
@@ -262,18 +262,7 @@ class Clanek {
     }
 
     function url() {
-        return self::urlPreved($this->hlavicky['Title']);
-    }
-
-    private static function urlPreved($r) {
-        $sDia = "ÁÄČÇĎÉĚËÍŇÓÖŘŠŤÚŮÜÝŽáäčçďéěëíňóöřšťúůüýž";
-        $bezDia = "aaccdeeeinoorstuuuyzaaccdeeeinoorstuuuyz";
-        $r = iconv('utf-8', 'Windows-1250//IGNORE', $r);
-        $r = strtr($r, iconv('utf-8', 'Windows-1250', $sDia), $bezDia);
-        $r = preg_replace('@[^a-zA-Z0-9\-]+@', '-', $r);
-        $r = trim($r, '-');
-        $r = strtolower($r);
-        return $r;
+        return slugify($this->hlavicky['Title']);
     }
 }
 
