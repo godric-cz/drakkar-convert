@@ -22,8 +22,9 @@ class Prekladac {
         '[class^=Z-hlav--C-titul]' => "# @\n\n",
         '[class^=Nadpis-]' => "## @\n\n",
         '[class^=Podnadpis-]' => "### @\n\n",
+        '[class=Pov-dka---podnadpis]' => "## @\n\n",
         '[class*=Tu-n-]' => ['__@__', 'mezeryVen' => true],
-        '[class*=Kurz-va]' => ['_@_',   'mezeryVen' => true],
+        '[class*=Kurz-va]' => ['_@_', 'mezeryVen' => true],
         'li [class^=char-style-override-]' => '',
         'ul li' => "\n- @",
         'ul' => "@\n\n",
@@ -101,9 +102,10 @@ class Prekladac {
                 }
 
                 // nahrazení spec. znaků v pravidle hodnotami
-        if ($posledni && ($e->next_sibling()->class != $e->class || $e->next_sibling()->innertext == '')) { // workaroud jen porovnání class místo hledání v elementech
-          $prepis = $posledni;
-        }
+                // (workaroud jen porovnání class místo hledání v elementech)
+                if ($posledni && ($e->next_sibling()->class != $e->class || $e->next_sibling()->innertext == '')) {
+                    $prepis = $posledni;
+                }
                 if (strpos($prepis, '@href') !== false) {
                     $prepis = str_replace('@href', $e->href, $prepis);
                 }
