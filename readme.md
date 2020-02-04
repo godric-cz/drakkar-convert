@@ -51,6 +51,10 @@ rozdeleni:
         delit_podle: '^## '
         atributy:
             title: ['^## (.*)$', 'Ravnburgh: \1']
+            summary: ['...', '...', 'třetí atribut je volitelně fallback při nenalezení']
+
+denormalizovany:
+    domy-ravnburghu: true
 ```
 
 `obrfix` -- budou přesouvat obrázky, vnořené názvy (veda) jsou části názvů článků a položky (- aktivní jádro.) jsou konce odstavců, za které se mají obrázky postupně zařadit.
@@ -58,3 +62,5 @@ rozdeleni:
 `extra_doplnky` -- v html je k článku nějaký doplněk (tj. html element za samotným článkem), který ale nemá požadované třídy a nedá se k článku přiřadit. Pokud se zadá tento parametr, hledá se fulltextově v obsahu elementu a pokud se shoduje, zachází se s ním jako s doplňkem.
 
 `rozdeleni` -- rozdělí požadovaný článek na víc menších. Atributy slouží k nahrazení určitých atributů v metadatech nových článků. Název souborů se odvodí z názvu článku (tj. atributu title).
+
+`denormalizovany` -- normálně se nadpisy normalizují na H2. Tímto se nechají H1 (užitečné pro články, co se budou potom rozdělovat).

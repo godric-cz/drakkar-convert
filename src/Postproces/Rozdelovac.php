@@ -61,13 +61,26 @@ class Rozdelovac {
         $outYaml = $puvodniYaml;
 
         // vygenerovat novou front matter a vyházet shody z textu
-        foreach ($this->atributy as $atribut => [$vyhledavani, $vysledek]) {
+        foreach ($this->atributy as $atribut => $attrData) {
+            $vyhledavani = $attrData[0];
+            $vysledek = $attrData[1];
+            $maFallback = array_key_exists(2, $attrData);
+            $fallback = $attrData[2] ?? null;
             $regex = '/'.$vyhledavani.'/m';
             $shoda = null;
 
             preg_match($regex, $outText, $shoda);
             if (!$shoda) {
-                throw new Exception("Nenalezeno '$vyhledavani'.");
+                if ($maFallback) {
+                    if ($fallback !== null) {
+                        $outYaml[$atribut] = $fallback;
+                    } else {
+                        unset($outYaml[$atribut]);
+                    }
+                    continue;
+                } else {
+                    throw new Exception("Nenalezeno '$vyhledavani'.");
+                }
             }
 
             // nastavit atribut podle vzoru v $vysledek

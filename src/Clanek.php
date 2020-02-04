@@ -31,7 +31,9 @@ class Clanek {
         $hledaneExtraDoplnky = $config['extra_doplnky'][0] ?? null;
         $this->nactiDoplnky($element, $hledaneExtraDoplnky);
 
-        $this->obsah = (new Prekladac)->preloz($element);
+        $prekladac = new Prekladac;
+        $prekladac->normalizovatNadpisy = !($config['denormalizovany'] ?? false);
+        $this->obsah = $prekladac->preloz($element);
     }
 
     /**
@@ -144,7 +146,10 @@ class Clanek {
                 $this->doplnky[] = "![]($vystupniSoubor)";
                 $this->obrazky[] = [$vstupniSoubor, $vystupniSoubor]; // zapamatovat pro případnou pozdější konverzi
             } elseif (strpos($class, 'Sidebar-') === 0) {
-                $this->doplnky[] = '<div class="sidebar">' . trim($dalsi->innertext) . '</div>';
+                $this->doplnky[] =
+                    '<div class="sidebar" markdown="1">' .
+                    (new Prekladac)->preloz($dalsi->innertext) .
+                    '</div>';
             } elseif ($hledanyText && str_contains($dalsi->innertext, $hledanyText)) {
                 $this->doplnky[] = '<div markdown="1">' . (new Prekladac)->preloz($dalsi->innertext) . '</div>';
             } else {

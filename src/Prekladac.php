@@ -9,6 +9,7 @@ use KubAT\PhpSimple\HtmlDomParser;
  */
 class Prekladac {
     private $zachovatTagy = false;
+    public $normalizovatNadpisy = true;
 
     // pozor že obsah již jednou modifikovaného nelze znova modifikovat (vnitřní uzly zmizí z domu)
     // je tedy vhodné začít "nejmenšími" elementy
@@ -72,7 +73,9 @@ class Prekladac {
             $text = $this->prelozMeta($text);
         }
 
-        $text = $this->normalizujUrovenNadpisu($text);
+        if ($this->normalizovatNadpisy) {
+            $text = $this->normalizujUrovenNadpisu($text);
+        }
 
         return $text;
     }
