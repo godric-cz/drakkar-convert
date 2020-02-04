@@ -8,16 +8,16 @@ require_once 'vendor/autoload.php';
 $opt = getopt('v:dto:bi:');
 
 $out = 'out';
-$k = new Konvertor;
+$konvertor = new Konvertor;
 
 if (isset($opt['d'])) {
-    $k->debug(true);
+    $konvertor->debug(true);
 }
 if (isset($opt['t'])) {
-    $k->zachovatTagy(true);
+    $konvertor->zachovatTagy(true);
 }
 if (isset($opt['b'])) {
-    $k->bezObrazku(true);
+    $konvertor->bezObrazku(true);
 }
 if (isset($opt['o'])) {
     $out = $opt['o'];
@@ -37,5 +37,5 @@ foreach ($htmls as $f) {
     $outdir = $out . '/' . $vydani;
     logger('Vstup:  %s', $f);
     logger('Výstup: %s', $outdir);
-    $k->preved($f, $outdir, $vydani);
+    $konvertor->preved($f, $outdir, $vydani);
 }
