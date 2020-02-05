@@ -64,6 +64,7 @@ class Clanek {
         foreach ($this->obrazky as [$zdroj, $cil]) {
             $kvalita = 92;
             $sirka = 459;
+            $sirkaPortrait = 300;
 
             // lepší kvalita obrázků pro bezejmenného hrdinu
             if (strpos($this->url(), 'bezejmenny-hrdina') !== false) {
@@ -75,9 +76,19 @@ class Clanek {
                 $jenZvetsit = function ($constraint) {
                     $constraint->upsize();
                 };
-                Image::make($zdrojovaSlozka . '/' . $zdroj)
-                ->widen($sirka, $jenZvetsit)
-                ->save($cilovaSlozka . '/' . $cil, $kvalita);
+
+                $in = Image::make($zdrojovaSlozka . '/' . $zdroj);
+                if ($in->height() > 1.3 * $in->width()) {
+                    // obrázky na výšku dělat užší
+                    $in->widen($sirkaPortrait, $jenZvetsit);
+                } else {
+                    $in->widen($sirka, $jenZvetsit);
+                }
+
+                // bíle pozadí, aby se u konvertovaných png nerozbíjela průhlednost
+                $out = Image::canvas($in->width(), $in->height(), '#ffffff');
+                $out->insert($in);
+                $out->save($cilovaSlozka . '/' . $cil, $kvalita);
             } catch (NotReadableException $e) {
                 throw new Exception("Obrázek '$zdrojovaSlozka/$zdroj' nelze přečíst.\n\nNepokazilo se kódování v názvu souboru při rozbalení archivu?");
             }
