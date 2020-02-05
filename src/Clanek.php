@@ -147,14 +147,23 @@ class Clanek {
             if ($class == 'marginalie') {
                 continue;
             } elseif (strpos($class, 'Obr-zek-') === 0 || $class == 'frame-2') {
+                // přeskočit obrázkové pozadí bezejmenných hrdinů
                 if ($dalsi->find('img', 0)->alt == 'blackbg.png') {
                     continue;
-                } // přeskočit obrázkové pozadí bezejmenných hrdinů
+                }
 
                 $vstupniSoubor = urldecode($dalsi->find('img', 0)->src);
                 $vystupniSoubor = slugify(substr(basename($vstupniSoubor), 0, strrpos(basename($vstupniSoubor), '.'))) . '.jpg';
 
-                $this->doplnky[] = "![]($vystupniSoubor)";
+                // zkusit, jestli za obrázkem není popisek
+                $popisek = '';
+                $nasledujici = $dalsi->next_sibling();
+                if (str_startswith($nasledujici->class, 'Sidebar-')) {
+                    $popisek = trim(strip_tags($nasledujici->innertext, '<a>'));
+                    $dalsi = $dalsi->next_sibling(); // přeskočit element
+                }
+
+                $this->doplnky[] = "![$popisek]($vystupniSoubor)";
                 $this->obrazky[] = [$vstupniSoubor, $vystupniSoubor]; // zapamatovat pro případnou pozdější konverzi
             } elseif (strpos($class, 'Sidebar-') === 0) {
                 $this->doplnky[] =

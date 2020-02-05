@@ -8,6 +8,10 @@ function str_contains($haystack, $needle) {
     return strpos($haystack, $needle) !== false;
 }
 
+function str_startswith($haystack, $needle) {
+    return strpos($haystack, $needle) === 0;
+}
+
 function slugify($r) {
     $sDia = "ÁÄČÇĎÉĚËÍŇÓÖŘŠŤÚŮÜÝŽáäčçďéěëíňóöřšťúůüýž";
     $bezDia = "aaccdeeeinoorstuuuyzaaccdeeeinoorstuuuyz";
