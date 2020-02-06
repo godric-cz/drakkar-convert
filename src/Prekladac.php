@@ -26,6 +26,7 @@ class Prekladac {
         '[class=Pov-dka---podnadpis]' => "## @\n\n",
         '[class*=Tu-n-]' => ['__@__', 'mezeryVen' => true],
         '[class*=Kurz-va]' => ['_@_', 'mezeryVen' => true],
+        '[class*=char-style-override-4]' => ['_@_', 'mezeryVen' => true],
         'li [class^=char-style-override-]' => '',
         'ul li' => "\n- @",
         'ul' => "@\n\n",

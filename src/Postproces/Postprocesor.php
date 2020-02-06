@@ -21,7 +21,8 @@ class Postprocesor {
     function spust() {
         $yaml = $this->config;
 
-        foreach ($yaml['obrfix'] as $castNazvu => $posuny) {
+        $obrfix = $yaml['obrfix'] ?? [];
+        foreach ($obrfix as $castNazvu => $posuny) {
             $c = $this->clanek($castNazvu);
             $obrazky = $c->obrazky();
             if (count($obrazky) != count($posuny)) {
@@ -91,11 +92,11 @@ class Kus {
         }
         $pos = strpos($this->text, $podretezec) + strlen($podretezec);
         $novy =
-      substr($this->text, 0, $pos) .  // od začátku po $pos nevčetně
-      substr($this->text, $this->zacatek, $this->delka) . // původní výraz
-      substr($this->text, $pos, $this->zacatek - $pos) . // od $pos včetně po začátek výrazu nevčetně
-      substr($this->text, $this->zacatek + $this->delka) . // od konce výrazu nevčetně až na konec dokumentu
-      '';
+            substr($this->text, 0, $pos) .  // od začátku po $pos nevčetně
+            substr($this->text, $this->zacatek, $this->delka) . // původní výraz
+            substr($this->text, $pos, $this->zacatek - $pos) . // od $pos včetně po začátek výrazu nevčetně
+            substr($this->text, $this->zacatek + $this->delka) . // od konce výrazu nevčetně až na konec dokumentu
+            '';
         $this->text = $novy;
     }
 }
