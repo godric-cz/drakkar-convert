@@ -208,7 +208,7 @@ class Clanek {
                 // v jednom elementu může být víc položek oddělených tabem
                 foreach (explode("\t", $text) as $polozka) {
                     // jestli je to štítek nebo autor se rozliší podle obsahu
-                    if (preg_match('@^(napsala?|připravila?|napísala?)\s+(.*)$@', $polozka, $shody)) {
+                    if (preg_match('/^(napsala?|připravila?|napísala?)\s+(.*)$/i', $polozka, $shody)) {
                         $autor = $shody[2];
                         $autor = preg_match('/^\s*„([^“]+)“\s*$/', $autor, $shody2) ? $shody2[1] : $autor;
                         $this->hlavicky['Authors'][] = $autor;
