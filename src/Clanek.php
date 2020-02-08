@@ -158,7 +158,7 @@ class Clanek {
                 // zkusit, jestli za obrázkem není popisek
                 $popisek = '';
                 $nasledujici = $dalsi->next_sibling();
-                if (str_startswith($nasledujici->class, 'Sidebar-')) {
+                if (str_startswith($nasledujici->class, 'Sidebar-') && !str_contains($this->url(), 'bezejmenny-hrdina')) {
                     $popisek = trim(strip_tags($nasledujici->innertext, '<a>'));
                     $dalsi = $dalsi->next_sibling(); // přeskočit element
                 }
