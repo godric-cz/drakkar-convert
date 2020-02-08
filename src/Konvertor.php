@@ -45,7 +45,11 @@ class Konvertor {
      * @param int $vydani číslo vydání
      */
     function preved($vstupniHtmlSoubor, $vystupniSlozka, $vydani) {
-        $config = Yaml::parseFile(dirname($vstupniHtmlSoubor) . '/' . $vydani . '.yaml');
+        $config = [];
+        $configSoubor = dirname($vstupniHtmlSoubor) . '/' . $vydani . '.yaml';
+        if (is_file($configSoubor)) {
+            $config = Yaml::parseFile($configSoubor);
+        }
         $clanky = $this->nactiClanky($vstupniHtmlSoubor, $config);
 
         // vytvoření složky pro výstup

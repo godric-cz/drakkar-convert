@@ -12,6 +12,13 @@ function str_startswith($haystack, $needle) {
     return strpos($haystack, $needle) === 0;
 }
 
+/**
+ * substr v python slice stylu
+ */
+function str_slice($str, $start, $end) {
+    return substr($str, $start, $end - $start);
+}
+
 function slugify($r) {
     $sDia = "ÁÄČÇĎÉĚËÍŇÓÖŘŠŤÚŮÜÝŽáäčçďéěëíňóöřšťúůüýž";
     $bezDia = "aaccdeeeinoorstuuuyzaaccdeeeinoorstuuuyz";

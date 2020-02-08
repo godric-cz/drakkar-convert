@@ -3,12 +3,25 @@
 namespace Drakkar\Postproces;
 
 class Postprocesor {
+    use MagicGetSet;
+
     private $slozka;
     private $config;
 
     function __construct($slozka, $config) {
         $this->slozka = $slozka;
         $this->config = $config;
+    }
+
+    function getClanky() {
+        $clanky = glob($this->slozka . '/*.md');
+        $clanky = array_filter($clanky, function ($f) {
+            return basename($f) != 'index.md';
+        });
+        $clanky = array_map(function ($f) {
+            return new Clanek($f);
+        }, $clanky);
+        return $clanky;
     }
 
     function clanek($castNazvu) {
@@ -34,6 +47,31 @@ class Postprocesor {
             $c->uloz();
         }
 
+        // automatické rozmístění obrázků
+        if (!$obrfix) {
+            foreach ($this->clanky as $clanek) {
+                if (!$clanek->doplnky) {
+                    continue;
+                }
+                if (str_contains(basename($clanek->cesta), 'hrdina')) {
+                    continue;
+                }
+
+                $reObrazek = '/\n*!\[[^\]]*\]\([^\)]*\)/';
+
+                $obrazky = [];
+                $clanek->doplnky = preg_replace_callback($reObrazek, function ($shoda) use (&$obrazky) {
+                    $obrazky[] = trim($shoda[0]);
+                    return '';
+                }, $clanek->doplnky);
+
+                $autoobrazky = new Autoobrazky;
+                $clanek->obsah = $autoobrazky->zarovnej($clanek->obsah, $obrazky);
+
+                $clanek->uloz();
+            }
+        }
+
         $rozdeleni = $yaml['rozdeleni'] ?? [];
         foreach ($rozdeleni as $castNazvu => $config) {
             $c = $this->clanek($castNazvu);
@@ -42,39 +80,6 @@ class Postprocesor {
             $r->atributy = $config['atributy'];
             $r->rozdel($c->cesta, dirname($c->cesta));
         }
-    }
-}
-
-class Clanek {
-    public $cesta;
-    private $text;
-
-    function __construct($cesta) {
-        $this->cesta = $cesta;
-        $this->text = file_get_contents($cesta);
-    }
-
-    function obrazek($castNazvu) {
-        $f = preg_quote($castNazvu);
-        preg_match('@\n*!\[[^\]]*\]\([^\)]*' . $f . '[^\)]*\)@', $this->text, $m, PREG_OFFSET_CAPTURE, strrpos($this->text, "---\n\n"));
-        if (!isset($m[0])) {
-            throw new \Exception('nenalezen obrázek: ' . $castNazvu);
-        }
-        return new Kus($this->text, $m[0][1], strlen($m[0][0]));
-    }
-
-    function obrazky() {
-        preg_match_all('/\n*!\[[^\]]*\]\([^\)]*\)/', $this->text, $matches, PREG_OFFSET_CAPTURE, strrpos($this->text, "---\n\n"));
-        $kusy = [];
-        foreach ($matches[0] as $m) {
-            $kusy[] = new Kus($this->text, $m[1], strlen($m[0]));
-        }
-        return $kusy;
-    }
-
-    function uloz() {
-        $this->text = preg_replace('@[\n\s]+---[\n\s]+$@', "\n", $this->text);
-        file_put_contents($this->cesta, $this->text);
     }
 }
 
