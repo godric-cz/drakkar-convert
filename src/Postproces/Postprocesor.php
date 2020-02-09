@@ -66,9 +66,12 @@ class Postprocesor {
                 }, $clanek->doplnky);
 
                 $autoobrazky = new Autoobrazky;
-                $clanek->obsah = $autoobrazky->zarovnej($clanek->obsah, $obrazky);
-
-                $clanek->uloz();
+                try {
+                    $clanek->obsah = $autoobrazky->zarovnej($clanek->obsah, $obrazky);
+                    $clanek->uloz();
+                } catch (Nezarovnano $e) {
+                    logger_warning("Nepodařilo se rozmístit všechny obrázky v článku '$clanek->url'. Neobsahuje text extrémně dlouhé odstavce?");
+                }
             }
         }
 

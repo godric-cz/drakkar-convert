@@ -46,9 +46,13 @@ class Autoobrazky {
 
         // kontroly a výstup
         if ($obrazek) {
-            throw new Exception('Nepodařilo se rozmístit všechny obrázky. Neobsahuje text extrémně dlouhé odstavce?');
+            // nepodařilo se zarovnat všechny obrázky
+            throw new Nezarovnano;
         }
 
         return implode("\n\n", $vystupniPole);
     }
+}
+
+class Nezarovnano extends Exception {
 }

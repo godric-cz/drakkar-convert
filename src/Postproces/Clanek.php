@@ -23,7 +23,7 @@ class Clanek {
             throw new Exception('Špatná front matter');
         }
         $konecFrontMatter = strpos($text, "\n---\n", 4);
-        $this->frontMatter = str_slice($text, 4, $konecFrontMatter); // TODO možná yaml decode?
+        $this->frontMatter = str_slice($text, 4, $konecFrontMatter); // TODO možná decode?
 
         // doplňky (nemusí v článku být)
         $zacatekDoplnku = strrpos($text, "\n---\n");
@@ -76,5 +76,9 @@ class Clanek {
     function uloz() {
         $this->text = preg_replace('@[\n\s]+---[\n\s]+$@', "\n", $this->text);
         file_put_contents($this->cesta, $this->text);
+    }
+
+    function getUrl() {
+        return basename($this->cesta);
     }
 }

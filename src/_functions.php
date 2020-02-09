@@ -4,6 +4,10 @@ function logger(...$args) {
     fwrite(STDERR, sprintf(...$args) . PHP_EOL);
 }
 
+function logger_warning(...$args) {
+    logger('Varování: ' . $args[0], ...array_slice($args, 1));
+}
+
 function str_contains($haystack, $needle) {
     return strpos($haystack, $needle) !== false;
 }
