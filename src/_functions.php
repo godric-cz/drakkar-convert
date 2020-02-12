@@ -24,8 +24,8 @@ function str_slice($str, $start, $end) {
 }
 
 function slugify($r) {
-    $sDia = "ÁÄČÇĎÉĚËÍŇÓÖŘŠŤÚŮÜÝŽáäčçďéěëíňóöřšťúůüýž";
-    $bezDia = "aaccdeeeinoorstuuuyzaaccdeeeinoorstuuuyz";
+    $sDia = "ÁÄČÇĎÉĚËÍŇĽÓÖŘŠŤÚŮÜÝŽáäčçďéěëíľňóöřšťúůüýž";
+    $bezDia = "aaccdeeeinloorstuuuyzaaccdeeeilnoorstuuuyz";
     $ilegalni = [html_entity_decode('&shy;')];
 
     $r = strtr($r, array_fill_keys($ilegalni, ''));
