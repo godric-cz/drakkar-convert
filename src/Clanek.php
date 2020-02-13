@@ -2,15 +2,18 @@
 
 namespace Drakkar;
 
-use Intervention\Image\ImageManagerStatic as Image;
 use \Exception;
 use Intervention\Image\Exception\NotReadableException;
+use Intervention\Image\ImageManagerStatic as Image;
 
 class Clanek {
     private $doplnky = [];
     private $hlavicky = [];
     private $obrazky = [];
     private $obsah;
+    private $ignorovatObrazky = [
+        'anchor-*', 'cannon-*', 'crossed-chains-*', 'crossed-pistols-*', 'sunbeams-*', 'unlit-bomb-*', 'magnifying-glass-*',
+    ];
 
     private static $poradiHlavicek = [
         'layout',
@@ -45,7 +48,7 @@ class Clanek {
         $out = html_entity_decode($out);
         $out = trim($out);
         $out = strtr($out, [
-            '<br>' => ' ',
+            '<br>'   => ' ',
             '<br />' => ' ',
         ]);
         $out = preg_replace('/<span[^>]*>2<\/span>/', '²', $out); // E² :)
@@ -155,6 +158,14 @@ class Clanek {
                 $vstupniSoubor = urldecode($dalsi->find('img', 0)->src);
                 $vystupniSoubor = slugify(substr(basename($vstupniSoubor), 0, strrpos(basename($vstupniSoubor), '.'))) . '.jpg';
 
+                // přeskočit zakázané obrázky
+                $basename = basename($vystupniSoubor);
+                foreach ($this->ignorovatObrazky as $ignorovany) {
+                    if (fnmatch($ignorovany, $basename)) {
+                        continue 2;
+                    }
+                }
+
                 // zkusit, jestli za obrázkem není popisek
                 $popisek = '';
                 $nasledujici = $dalsi->next_sibling();
@@ -237,7 +248,7 @@ class Clanek {
             // perex
             'Z-hlav--.-perex' => function ($text) {
                 $this->hlavicky['summary'] = $text;
-            }
+            },
 
         ];
 
