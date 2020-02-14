@@ -190,10 +190,15 @@ class Clanek {
                 $this->doplnky[] = "![$popisek]($vystupniSoubor)";
                 $this->obrazky[] = [$vstupniSoubor, $vystupniSoubor]; // zapamatovat pro případnou pozdější konverzi
             } elseif (strpos($class, 'Sidebar-') === 0) {
-                $this->doplnky[] =
-                    '<div class="sidebar" markdown="1">' .
-                    (new Prekladac)->preloz($dalsi->innertext) .
-                    '</div>';
+                $text = trim((new Prekladac)->preloz($dalsi->innertext));
+
+                if (str_contains($text, "\n\n")) {
+                    $doplnek = '<div class="sidebar" markdown="1">' . "\n" . $text . "\n</div>";
+                } else {
+                    $doplnek = "{:.sidebar}\n" . $text;
+                }
+
+                $this->doplnky[] = $doplnek;
             } elseif ($hledanyText && str_contains($dalsi->innertext, $hledanyText)) {
                 $this->doplnky[] = '<div markdown="1">' . (new Prekladac)->preloz($dalsi->innertext) . '</div>';
             } else {
