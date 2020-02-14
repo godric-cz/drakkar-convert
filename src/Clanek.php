@@ -12,7 +12,20 @@ class Clanek {
     private $obrazky = [];
     private $obsah;
     private $ignorovatObrazky = [
-        'anchor-*', 'cannon-*', 'crossed-chains-*', 'crossed-pistols-*', 'sunbeams-*', 'unlit-bomb-*', 'magnifying-glass-*',
+        'anchor-*',
+        'cannon-*',
+        'crossed-chains-*',
+        'crossed-pistols-*',
+        'sunbeams-*',
+        'unlit-bomb-*',
+        'magnifying-glass-*',
+        'ace-*',
+        'boxing-glove-surprise-*',
+        'evil-book-*',
+        'galleon-*',
+        'gears-fmt*',
+        'journey-fmt*',
+        'world-fmt*',
     ];
 
     private static $poradiHlavicek = [
