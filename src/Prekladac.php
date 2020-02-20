@@ -10,6 +10,7 @@ use KubAT\PhpSimple\HtmlDomParser;
 class Prekladac {
     private $zachovatTagy = false;
     public $normalizovatNadpisy = true;
+    public $opravitSeznamy = true;
 
     // pozor že obsah již jednou modifikovaného nelze znova modifikovat (vnitřní uzly zmizí z domu)
     // je tedy vhodné začít "nejmenšími" elementy
@@ -76,6 +77,10 @@ class Prekladac {
 
         if ($this->normalizovatNadpisy) {
             $text = $this->normalizujUrovenNadpisu($text);
+        }
+
+        if ($this->opravitSeznamy) {
+            $text = $this->opravSeznamy($text);
         }
 
         return $text;
@@ -172,5 +177,12 @@ class Prekladac {
             '{{priklad}}'  => '> ',
             '{{/priklad}}' => '',
         ]);
+    }
+
+    /**
+     * Odstraní ručně vložené znaky "•" z seznamů.
+     */
+    protected function opravSeznamy($text) {
+        return preg_replace('/^- _•_/m', '-', $text);
     }
 }
