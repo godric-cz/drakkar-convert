@@ -19,21 +19,21 @@ class Prekladac {
     //  posledni - změněný přepis u elementů, po kterých následuje jiný element
     //  mezeryVen - přesunout mezery kolem obsahu před a za celý přepis
     private static $prepisy = [
-        'a[href]' => '[@](@href)',
-        '[class^=Z-hlav--C-titul]' => "# @\n\n",
-        '[class^=Nadpis-]' => "## @\n\n",
-        '[class^=Podnadpis-]' => "### @\n\n",
-        '[class=Pov-dka---podnadpis]' => "## @\n\n",
-        '[class*=Tu-n-]' => ['__@__', 'mezeryVen' => true],
-        '[class*=Kurz-va]' => ['_@_', 'mezeryVen' => true],
-        '[class*=char-style-override-4]' => ['_@_', 'mezeryVen' => true],
+        'a[href]'                          => '[@](@href)',
+        '[class^=Z-hlav--C-titul]'         => "# @\n\n",
+        '[class^=Nadpis-]'                 => "## @\n\n",
+        '[class^=Podnadpis-]'              => "### @\n\n",
+        '[class=Pov-dka---podnadpis]'      => "## @\n\n",
+        '[class*=Tu-n-]'                   => ['__@__', 'mezeryVen' => true],
+        '[class*=Kurz-va]'                 => ['_@_', 'mezeryVen' => true],
+        '[class*=char-style-override-4]'   => ['_@_', 'mezeryVen' => true],
         'li [class^=char-style-override-]' => '',
-        'ul li' => "\n- @",
-        'ul' => "@\n\n",
-        'ol li' => "\n1. @",
-        'ol' => "@\n\n",
-        'p[class^=P--klad]' => ["> @\n>\n", 'posledni' => "> @\n\n", 'orez' => true],
-        'p[class=Seznam-bez-punt-k-]' => ["- @\n", 'posledni' => "- @\n\n"], // TODO mělo by být bez puntíků
+        'ul li'                            => "\n- @",
+        'ul'                               => "@\n\n",
+        'ol li'                            => "\n1. @",
+        'ol'                               => "@\n\n",
+        'p[class^=P--klad]'                => ["> @\n>\n", 'posledni' => "> @\n\n", 'orez' => true],
+        'p[class=Seznam-bez-punt-k-]'      => ["- @\n", 'posledni' => "- @\n\n"], // TODO mělo by být bez puntíků
 
         // p musí být poslední, protože modifikace inner/outertextů degraduje schopnost vyhledávat v DOMu
         'p' => "@\n\n",
@@ -169,7 +169,7 @@ class Prekladac {
 
     protected function prelozMeta($text) {
         return strtr($text, [
-            '{{priklad}}' => '> ',
+            '{{priklad}}'  => '> ',
             '{{/priklad}}' => '',
         ]);
     }
