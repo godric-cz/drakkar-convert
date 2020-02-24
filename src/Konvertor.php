@@ -60,24 +60,15 @@ class Konvertor {
             throw new \Exception('Do výstupní složky nelze zapisovat.');
         }
 
-        $clankyYaml = '';
+        // zápis článků a obrázků
         foreach ($clanky as $clanek) {
             $clanekSoubor = $clanek->url() . '.md';
             file_put_contents($vystupniSlozka . '/' . $clanekSoubor, $clanek->md());
-            $clankyYaml .= "- $clanekSoubor\n";
             if (!$this->bezObrazku) {
                 $clanek->konvertujObrazky(dirname($vstupniHtmlSoubor), $vystupniSlozka);
             }
         }
 
-        // vytvořit yaml seznam článku ve vydání
-        // $pdfVerze = pathinfo($vstupniHtmlSoubor)['filename'] . '.pdf';
-        // file_put_contents($vystupniSlozka . '/metadata.yaml',
-        //   "---\n" .
-        //   "pdf: $pdfVerze\n" .
-        //   "articles: \n- uvodni-haiku.md\n" .
-        //   $clankyYaml
-        // );
         file_put_contents(
             "$vystupniSlozka/index.md",
             "---\n" .
